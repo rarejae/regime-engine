@@ -4,6 +4,9 @@ Classifies the current macroeconomic environment into a primary regime
 (GOLDILOCKS, REFLATION, STAGFLATION, DEFLATION, MIXED) plus modifier tags,
 and computes a conviction score.
 
+NOTE: The regime label is for DISPLAY ONLY. All trade decisions flow from
+the ConditionVector (engine/condition_vector.py), not the regime label.
+
 Also tracks regime transition direction by comparing to the previous classification.
 """
 

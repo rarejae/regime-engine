@@ -5,11 +5,12 @@ Full pipeline:
   1. Fetch all macro indicators
   2. Normalize to z-scores
   3. Score composite axes (GROWTH, INFLATION, LIQUIDITY, RISK)
-  4. Classify regime + modifiers + conviction
-  5. Select strategy
-  6. Construct specific SPY vertical spread
-  7. Compute win probability
-  8. Print TradeCard
+  4. Classify regime (display label only)
+  5. Build ConditionVector (the central data structure)
+  6. Score all 5 strategies against ConditionVector
+  7. Construct specific SPY vertical spread from top strategy
+  8. Compute win probability
+  9. Print TradeCard
 
 Usage:
     python main.py                     # full run with all indicators
@@ -21,8 +22,6 @@ Usage:
 
 from __future__ import annotations
 
-import json
-import os
 import sys
 
 import click
@@ -81,40 +80,49 @@ def main(debug: bool, indicators: tuple[str, ...], no_cache: bool, output_json: 
     scorer = AxisScorer()
     axis_scores = scorer.score(normalized)
 
-    # ── Phase 4: Regime classification ───────────────────────────────────────
+    # ── Phase 4: Regime classification (display label only) ──────────────────
     from engine.regime_classifier import RegimeClassifier
 
-    # Pull VIX and VVIX for modifier computation (if available)
     vix_indicator = snapshot.get("VIX")
     vvix_indicator = snapshot.get("VVIX")
     vix_term_indicator = snapshot.get("VIX_TERM")
 
-    vix_val = vix_indicator.value if vix_indicator else None
-    vvix_val = vvix_indicator.value if vvix_indicator else None
     vix_term_val = vix_term_indicator.value if vix_term_indicator else None
+    vvix_val = vvix_indicator.value if vvix_indicator else None
 
     classifier = RegimeClassifier()
     regime = classifier.classify(axis_scores, vix_term=vix_term_val, vvix=vvix_val)
 
-    # ── Phase 5: Strategy selection ───────────────────────────────────────────
-    from engine.strategy_selector import StrategySelector
-    selector = StrategySelector()
-    vix_for_strategy = vix_val or 20.0
-    strategy_params = selector.select(regime, vix=vix_for_strategy)
+    # ── Phase 5: Build ConditionVector ────────────────────────────────────────
+    from engine.condition_vector import build_condition_vector
+    cv = build_condition_vector(
+        axis_scores=axis_scores,
+        snapshot=snapshot,
+        prev_axis_scores=None,  # no prior scores in single-run mode
+        regime_label=regime.primary,
+        conviction=regime.conviction,
+    )
 
-    # ── Phase 6: Trade construction ───────────────────────────────────────────
+    # ── Phase 6: Score all strategies against ConditionVector ─────────────────
+    from engine.strategy_scorer import rank_strategies, strategy_type, STRATEGY_DISPLAY
+    ranked = rank_strategies(cv)
+    top_strategy, top_score = ranked[0]
+
+    logger.info(f"Top strategy: {STRATEGY_DISPLAY[top_strategy]} (score={top_score:+.2f})")
+
+    # ── Phase 7: Trade construction (driven by ConditionVector) ───────────────
     from engine.trade_constructor import TradeConstructor
     constructor = TradeConstructor(fetcher)
 
     try:
-        card = constructor.construct(regime, strategy_params)
+        card = constructor.construct(cv, top_strategy)
     except Exception as e:
         logger.error(f"Trade construction failed: {e}")
         logger.info("Printing regime analysis without trade card")
-        _print_regime_summary(regime, axis_scores, snapshot)
+        _print_regime_summary(regime, axis_scores, snapshot, ranked)
         sys.exit(1)
 
-    # ── Phase 7: Win probability ──────────────────────────────────────────────
+    # ── Phase 8: Win probability ──────────────────────────────────────────────
     from engine.win_probability import WinProbabilityModel
     win_model = WinProbabilityModel()
     card = win_model.compute(card, regime)
@@ -123,16 +131,16 @@ def main(debug: bool, indicators: tuple[str, ...], no_cache: bool, output_json: 
     if snapshot.warnings:
         card = card.model_copy(update={"notes": card.notes + snapshot.warnings})
 
-    # ── Phase 8: Output ───────────────────────────────────────────────────────
+    # ── Phase 9: Output ───────────────────────────────────────────────────────
     if output_json:
         click.echo(card.model_dump_json(indent=2))
     else:
-        _print_trade_card(card)
+        _print_trade_card(card, ranked)
 
     logger.info("Pipeline complete")
 
 
-def _print_trade_card(card: "TradeCard") -> None:
+def _print_trade_card(card: "TradeCard", ranked: list[tuple[str, float]] | None = None) -> None:
     """Pretty-print the TradeCard to stdout using rich."""
     try:
         from rich.console import Console
@@ -156,6 +164,7 @@ def _print_trade_card(card: "TradeCard") -> None:
         regime_text.append(f"  {card.regime}", style=f"bold {regime_color}")
         if card.modifiers:
             regime_text.append(f"  [{', '.join(card.modifiers)}]", style="dim")
+        regime_text.append("  (display only — trade driven by ConditionVector)", style="dim italic")
 
         # Axis scores table
         axis_table = Table(box=box.SIMPLE, show_header=True, header_style="bold cyan")
@@ -167,6 +176,17 @@ def _print_trade_card(card: "TradeCard") -> None:
             bar = "▇" * int(abs(score) / 10) if abs(score) >= 5 else "·"
             signal = f"[green]+{score:.1f}[/green]" if score >= 0 else f"[red]{score:.1f}[/red]"
             axis_table.add_row(axis, signal, bar)
+
+        # Strategy rankings table
+        if ranked:
+            from engine.strategy_scorer import STRATEGY_DISPLAY
+            rank_table = Table(box=box.SIMPLE, show_header=True, header_style="bold magenta")
+            rank_table.add_column("#", style="dim")
+            rank_table.add_column("Strategy")
+            rank_table.add_column("Score", justify="right")
+            for i, (s, sc) in enumerate(ranked):
+                style = "bold green" if i == 0 else ""
+                rank_table.add_row(str(i + 1), STRATEGY_DISPLAY[s], f"{sc:+.2f}", style=style)
 
         # Trade table
         trade_table = Table(box=box.SIMPLE, show_header=False)
@@ -192,7 +212,7 @@ def _print_trade_card(card: "TradeCard") -> None:
             f"[bold green]{card.win_probability*100:.1f}%[/bold green]" if card.win_probability > 0.60
             else f"[bold yellow]{card.win_probability*100:.1f}%[/bold yellow]",
         )
-        trade_table.add_row("Conviction", f"{card.conviction:.0f}/100  ({card.transition})")
+        trade_table.add_row("Conviction", f"{card.conviction:.0f}/100")
 
         # Management table
         mgmt_table = Table(box=box.SIMPLE, show_header=False)
@@ -204,23 +224,24 @@ def _print_trade_card(card: "TradeCard") -> None:
         console.print()
         console.print(Panel(regime_text, title="[bold]MACRO REGIME[/bold]", border_style=regime_color))
         console.print(Panel(axis_table, title="[bold]AXIS SCORES[/bold]", border_style="cyan"))
+        if ranked:
+            console.print(Panel(rank_table, title="[bold]STRATEGY RANKINGS (ConditionVector)[/bold]", border_style="magenta"))
         console.print(Panel(trade_table, title="[bold]TRADE CARD[/bold]", border_style="green"))
         console.print(Panel(mgmt_table, title="[bold]TRADE MANAGEMENT[/bold]", border_style="yellow"))
 
         if card.notes:
-            notes_text = "\n".join(f"  ⚠  {n}" for n in card.notes)
+            notes_text = "\n".join(f"  !  {n}" for n in card.notes)
             console.print(Panel(notes_text, title="[bold]NOTES & PROXIES[/bold]", border_style="dim"))
 
         console.print(f"\n[dim]Generated: {card.timestamp}[/dim]\n")
 
     except ImportError:
-        # Fallback: plain text
         print(_trade_card_plain(card))
 
 
-def _print_regime_summary(regime, axis_scores, snapshot) -> None:
+def _print_regime_summary(regime, axis_scores, snapshot, ranked=None) -> None:
     """Print a minimal regime summary when trade construction fails."""
-    print(f"\nRegime:     {regime.primary}")
+    print(f"\nRegime:     {regime.primary} (display only)")
     print(f"Modifiers:  {regime.modifiers}")
     print(f"Conviction: {regime.conviction:.0f}/100")
     print(f"Transition: {regime.transition}")
@@ -228,6 +249,12 @@ def _print_regime_summary(regime, axis_scores, snapshot) -> None:
     for ax in ("GROWTH", "INFLATION", "LIQUIDITY", "RISK"):
         score = getattr(axis_scores, ax)
         print(f"  {ax:12} {score:+.1f}")
+    if ranked:
+        from engine.strategy_scorer import STRATEGY_DISPLAY
+        print(f"\nStrategy Rankings (from ConditionVector):")
+        for i, (s, sc) in enumerate(ranked):
+            marker = " <-- TOP" if i == 0 else ""
+            print(f"  #{i+1} {STRATEGY_DISPLAY[s]:20} score={sc:+.2f}{marker}")
 
 
 def _trade_card_plain(card: "TradeCard") -> str:
@@ -235,7 +262,7 @@ def _trade_card_plain(card: "TradeCard") -> str:
     lines = [
         "",
         f"{'='*50}",
-        f"  REGIME:    {card.regime}  {card.modifiers}",
+        f"  REGIME:    {card.regime} (display only)  {card.modifiers}",
         f"  STRATEGY:  {card.strategy}  (conviction: {card.conviction:.0f})",
         f"{'='*50}",
         f"  SPY {card.short_strike:.0f}/{card.long_strike:.0f}  exp {card.expiry} ({card.dte}d)",
