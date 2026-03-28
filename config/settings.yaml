@@ -1,0 +1,92 @@
+# Macro Regime Engine — Global Settings
+
+# ── CACHE ─────────────────────────────────────────────────────────────────────
+cache:
+  directory: ".cache"
+  ttl_seconds:
+    realtime: 900       # 15 minutes
+    daily: 14400        # 4 hours
+    weekly: 86400       # 24 hours
+    monthly: 86400      # 24 hours (new monthly data releases at most once/month)
+  history_years: 5      # years of history to pull on first run for z-score baseline
+
+# ── NORMALIZATION ────────────────────────────────────────────────────────────
+normalization:
+  lookback_years: 5     # rolling window for mean/std computation
+  z_clip: 3.0           # clip z-scores to ±3 before weighting
+  min_history_periods: 12  # minimum observations required to compute z-score
+
+# ── AXIS SCORING ─────────────────────────────────────────────────────────────
+axis_scoring:
+  tanh_scale: 1.0       # raw score passed to tanh(x * tanh_scale) * 100
+  output_range: 100     # axis scores bounded to [-100, +100]
+
+# ── REGIME CLASSIFICATION ────────────────────────────────────────────────────
+regime:
+  transition_smoothing: 3  # number of consecutive readings before regime change confirmed
+  conviction_high: 50
+  conviction_medium: 20
+
+# ── STRIKE SELECTION (delta targets by conviction) ───────────────────────────
+strike_selection:
+  high_conviction:      # conviction > 50
+    short_delta_min: 0.30
+    short_delta_max: 0.35
+    long_delta_min: 0.15
+    long_delta_max: 0.20
+  medium_conviction:    # conviction 20–50
+    short_delta_min: 0.20
+    short_delta_max: 0.25
+    long_delta_min: 0.08
+    long_delta_max: 0.12
+  low_conviction:       # conviction < 20
+    short_delta_min: 0.12
+    short_delta_max: 0.16
+    long_delta_min: 0.05
+    long_delta_max: 0.08
+
+# ── DTE SELECTION ────────────────────────────────────────────────────────────
+dte_selection:
+  credit:
+    high_conviction: 21
+    medium_conviction: 35
+    low_conviction: 45
+  debit:
+    high_conviction: 35
+    medium_conviction: 50
+    low_conviction: 60
+
+# ── SPREAD WIDTH (by VIX regime, SPY-specific) ───────────────────────────────
+spread_width:
+  vix_lt_15:
+    min: 2
+    max: 3
+  vix_15_25:
+    min: 3
+    max: 5
+  vix_25_40:
+    min: 5
+    max: 10
+  vix_gt_40:
+    min: 10
+    max: 15
+
+# ── OPTIONS CHAIN FILTERS ────────────────────────────────────────────────────
+options_filters:
+  min_open_interest: 100
+  max_bid_ask_spread_pct: 0.20  # max (ask - bid) / mid
+  min_volume: 10
+
+# ── RISK-FREE RATE ────────────────────────────────────────────────────────────
+risk_free:
+  source: fred
+  series_id: DGS2           # 2-year Treasury as risk-free rate proxy
+  fallback: 0.05            # 5% fallback if FRED unavailable
+
+# ── LOGGING ──────────────────────────────────────────────────────────────────
+logging:
+  level: INFO               # DEBUG | INFO | WARNING | ERROR
+  format: "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
+  file: "logs/regime_engine.log"
+  rotation: "10 MB"
+  retention: "30 days"

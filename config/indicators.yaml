@@ -1,0 +1,375 @@
+# Macro Regime Engine — Indicator Configuration
+# Each indicator maps to a real, free data source.
+# Fields:
+#   source: data source module (fred, yahoo, bls, cboe, atlanta_fed, aaii, gpr)
+#   series_id / ticker: source-specific identifier
+#   derive: optional derivation formula applied to raw series
+#   derive_from: list of raw series IDs needed for derived indicators
+#   unit: display unit string
+#   polarity: "risk_on" | "risk_off" | "ambiguous"
+#   axis: GROWTH | INFLATION | LIQUIDITY | RISK
+#   weight: relative weight within axis (weights per axis should sum to ~1.0)
+#   refresh: realtime | daily | weekly | monthly
+#   z_clip: max abs z-score before clipping (default 3.0)
+#   optional: if true, skip gracefully when unavailable
+#   notes: human-readable caveat string
+
+indicators:
+
+  # ── MONETARY POLICY ──────────────────────────────────────────────────────────
+  FFR_LEVEL:
+    source: fred
+    series_id: DFF
+    unit: "%"
+    polarity: ambiguous
+    axis: LIQUIDITY
+    weight: 0.20
+    refresh: daily
+
+  FFR_DELTA_12M:
+    source: fred
+    series_id: DFF
+    derive: delta_12m        # current value minus value 252 trading days ago, in bps
+    unit: bps
+    polarity: risk_off       # hiking = tighter = risk_off
+    axis: LIQUIDITY
+    weight: 0.15
+    refresh: daily
+
+  FED_BS_DELTA_3M:
+    source: fred
+    series_id: WALCL
+    derive: delta_3m_pct     # % change in Fed balance sheet over past 3 months
+    unit: "%"
+    polarity: risk_on        # expanding = loose = risk_on
+    axis: LIQUIDITY
+    weight: 0.10
+    refresh: weekly
+
+  # ── INFLATION ────────────────────────────────────────────────────────────────
+  CPI_YOY:
+    source: fred
+    series_id: CPIAUCSL
+    derive: yoy_pct
+    unit: "%"
+    polarity: risk_off
+    axis: INFLATION
+    weight: 0.25
+    refresh: monthly
+
+  CPI_MOM_3MA:
+    source: fred
+    series_id: CPIAUCSL
+    derive: mom_3m_annualized
+    unit: "%"
+    polarity: risk_off
+    axis: INFLATION
+    weight: 0.20
+    refresh: monthly
+
+  PCE_CORE_YOY:
+    source: fred
+    series_id: PCEPILFE
+    derive: yoy_pct
+    unit: "%"
+    polarity: risk_off
+    axis: INFLATION
+    weight: 0.25
+    refresh: monthly
+
+  BREAKEVEN_5Y:
+    source: fred
+    series_id: T5YIE
+    unit: "%"
+    polarity: risk_off
+    axis: INFLATION
+    weight: 0.15
+    refresh: daily
+
+  WTI_INFL:
+    source: yahoo
+    ticker: "CL=F"
+    derive: yoy_pct          # used as inflation signal component
+    unit: "%"
+    polarity: risk_off       # supply-shock channel
+    axis: INFLATION
+    weight: 0.15
+    refresh: realtime
+
+  # ── RATES & CURVE ────────────────────────────────────────────────────────────
+  UST_2Y:
+    source: fred
+    series_id: DGS2
+    unit: "%"
+    polarity: ambiguous
+    axis: LIQUIDITY
+    weight: 0.10
+    refresh: daily
+
+  UST_10Y:
+    source: fred
+    series_id: DGS10
+    unit: "%"
+    polarity: ambiguous
+    axis: LIQUIDITY
+    weight: 0.10
+    refresh: daily
+
+  UST_2S10S:
+    source: fred
+    derive: spread_bps
+    derive_from: [DGS10, DGS2]
+    unit: bps
+    polarity: risk_on        # steep curve = healthy growth expectations
+    axis: GROWTH
+    weight: 0.10
+    refresh: daily
+
+  REAL_YIELD_10Y:
+    source: fred
+    series_id: DFII10
+    unit: "%"
+    polarity: risk_off       # higher real yields = tighter financial conditions
+    axis: LIQUIDITY
+    weight: 0.10
+    refresh: daily
+
+  MOVE_INDEX:
+    source: yahoo
+    ticker: "^MOVE"
+    unit: idx
+    polarity: risk_off
+    axis: RISK
+    weight: 0.10
+    refresh: daily
+    optional: true           # yfinance may not carry ^MOVE reliably
+
+  # ── VOLATILITY ───────────────────────────────────────────────────────────────
+  VIX:
+    source: yahoo
+    ticker: "^VIX"
+    unit: idx
+    polarity: risk_off
+    axis: RISK
+    weight: 0.30
+    refresh: realtime
+
+  VIX_TERM:
+    source: yahoo
+    derive: spread
+    derive_from: ["^VIX3M", "^VIX"]
+    unit: pts
+    polarity: risk_on        # contango (positive) = calm market
+    axis: RISK
+    weight: 0.15
+    refresh: realtime
+
+  VVIX:
+    source: yahoo
+    ticker: "^VVIX"
+    unit: idx
+    polarity: risk_off
+    axis: RISK
+    weight: 0.10
+    refresh: realtime
+
+  SKEW:
+    source: yahoo
+    ticker: "^SKEW"
+    unit: idx
+    polarity: risk_off
+    axis: RISK
+    weight: 0.10
+    refresh: daily
+
+  # ── CREDIT ───────────────────────────────────────────────────────────────────
+  HY_OAS:
+    source: fred
+    series_id: BAMLH0A0HYM2
+    unit: bps
+    polarity: risk_off
+    axis: RISK
+    weight: 0.15
+    refresh: daily
+
+  IG_OAS:
+    source: fred
+    series_id: BAMLC0A0CM
+    unit: bps
+    polarity: risk_off
+    axis: LIQUIDITY
+    weight: 0.10
+    refresh: daily
+
+  HY_IG_DIFF:
+    source: fred
+    derive: spread_bps
+    derive_from: [BAMLH0A0HYM2, BAMLC0A0CM]
+    unit: bps
+    polarity: risk_off
+    axis: RISK
+    weight: 0.10
+    refresh: daily
+
+  # ── GROWTH & LABOR ───────────────────────────────────────────────────────────
+  ISM_MFG:
+    source: fred
+    series_id: MANEMP
+    derive: mom_pct          # MoM % change in manufacturing employment as PMI proxy
+    unit: "%"
+    polarity: risk_on
+    axis: GROWTH
+    weight: 0.20
+    refresh: monthly
+    notes: "Proxy: FRED manufacturing employment (MANEMP). True ISM PMI requires paid data."
+
+  NFP_3MA:
+    source: fred
+    series_id: PAYEMS
+    derive: mom_3ma_thousands
+    unit: K
+    polarity: risk_on
+    axis: GROWTH
+    weight: 0.20
+    refresh: monthly
+
+  CLAIMS_4WK:
+    source: fred
+    series_id: IC4WSA
+    unit: K
+    polarity: risk_off       # higher claims = deteriorating labor market
+    axis: GROWTH
+    weight: 0.15
+    refresh: weekly
+
+  GDP_NOWCAST:
+    source: atlanta_fed
+    unit: "%"
+    polarity: risk_on
+    axis: GROWTH
+    weight: 0.20
+    refresh: weekly          # Atlanta Fed updates ~6x per month
+
+  HOUSING_STARTS:
+    source: fred
+    series_id: HOUST
+    unit: K
+    polarity: risk_on
+    axis: GROWTH
+    weight: 0.05
+    refresh: monthly
+
+  # ── COMMODITIES ──────────────────────────────────────────────────────────────
+  WTI:
+    source: yahoo
+    ticker: "CL=F"
+    unit: "$/bbl"
+    polarity: ambiguous
+    axis: INFLATION
+    weight: 0.00             # raw level feeds WTI_INFL (yoy); excluded from double-count
+    refresh: realtime
+    notes: "Raw price used for trade construction context, not directly scored."
+
+  GOLD:
+    source: yahoo
+    ticker: "GC=F"
+    unit: "$/oz"
+    polarity: risk_off       # flight-to-safety demand
+    axis: RISK
+    weight: 0.05
+    refresh: realtime
+
+  COPPER:
+    source: yahoo
+    ticker: "HG=F"
+    unit: "$/lb"
+    polarity: risk_on        # industrial demand proxy (Doctor Copper)
+    axis: GROWTH
+    weight: 0.10
+    refresh: realtime
+
+  # ── SENTIMENT ────────────────────────────────────────────────────────────────
+  AAII_BULL_BEAR:
+    source: aaii
+    unit: "%"
+    polarity: risk_on        # extreme bull readings are contrarian bearish at >+30
+    axis: RISK
+    weight: 0.05
+    refresh: weekly
+
+  PUT_CALL:
+    source: cboe
+    unit: ratio
+    polarity: risk_off       # high ratio = elevated fear / hedging demand
+    axis: RISK
+    weight: 0.05
+    refresh: daily
+
+  # ── EQUITY INTERNALS ─────────────────────────────────────────────────────────
+  SPX_RTN_3M:
+    source: yahoo
+    ticker: SPY
+    derive: return_3m_pct
+    unit: "%"
+    polarity: risk_on
+    axis: GROWTH
+    weight: 0.05
+    refresh: daily
+
+  ADV_DEC_RATIO:
+    source: yahoo
+    ticker: RSP              # equal-weight S&P 500 ETF as breadth proxy
+    derive: up_down_ratio_10d
+    unit: ratio
+    polarity: risk_on
+    axis: GROWTH
+    weight: 0.05
+    refresh: daily
+
+  SPX_PE_FWD:
+    source: yahoo
+    ticker: SPY
+    derive: trailing_pe      # forward P/E unavailable free; trailing as proxy
+    unit: x
+    polarity: risk_off       # stretched valuations compress risk appetite
+    axis: RISK
+    weight: 0.05
+    refresh: daily
+    notes: "Proxy: trailing P/E from yfinance. Forward P/E requires paid data."
+
+  # ── HOUSING & FX ─────────────────────────────────────────────────────────────
+  MORT_30Y:
+    source: fred
+    series_id: MORTGAGE30US
+    unit: "%"
+    polarity: risk_off
+    axis: LIQUIDITY
+    weight: 0.10
+    refresh: weekly
+
+  DXY:
+    source: fred
+    series_id: DTWEXBGS      # broad trade-weighted dollar index (FRED proxy for DXY)
+    unit: idx
+    polarity: ambiguous
+    axis: LIQUIDITY
+    weight: 0.05
+    refresh: daily
+
+  NFCI:
+    source: fred
+    series_id: NFCI
+    unit: idx
+    polarity: risk_off       # positive = tighter-than-average financial conditions
+    axis: LIQUIDITY
+    weight: 0.15
+    refresh: weekly
+
+  # ── GEOPOLITICAL ─────────────────────────────────────────────────────────────
+  GPR:
+    source: gpr
+    unit: idx
+    polarity: risk_off
+    axis: RISK
+    weight: 0.05
+    refresh: daily

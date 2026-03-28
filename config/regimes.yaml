@@ -1,0 +1,140 @@
+# Macro Regime Engine — Regime Definitions
+# Thresholds, strategy mappings, and management rules per regime
+
+# ── PRIMARY REGIME THRESHOLDS ─────────────────────────────────────────────────
+# Axis scores range from -100 to +100 (tanh-bounded)
+# growth_threshold and inflation_threshold define the MIXED zone boundaries
+
+primary:
+  growth_threshold: 20       # scores > +20 = expansion, < -20 = contraction
+  inflation_threshold: 20    # scores > +20 = elevated, < -20 = deflationary
+
+  regimes:
+    GOLDILOCKS:
+      condition: "growth > threshold AND inflation < threshold"
+      description: "Above-trend growth with contained inflation"
+      bias: bullish
+      vix_regime: low        # typically VIX < 20
+
+    REFLATION:
+      condition: "growth > threshold AND inflation >= threshold"
+      description: "Strong growth with rising inflation; late cycle"
+      bias: bullish_with_caution
+      vix_regime: moderate
+
+    STAGFLATION:
+      condition: "growth <= -threshold AND inflation >= threshold"
+      description: "Slowing/contracting growth with sticky/rising inflation"
+      bias: bearish
+      vix_regime: elevated
+
+    DEFLATION:
+      condition: "growth <= -threshold AND inflation < -threshold"
+      description: "Recession with falling prices; worst risk-off scenario"
+      bias: very_bearish
+      vix_regime: high
+
+    MIXED:
+      condition: "neither strong signal on growth nor inflation"
+      description: "Transition zone; regime direction unclear"
+      bias: neutral
+      vix_regime: variable
+
+# ── MODIFIER THRESHOLDS ───────────────────────────────────────────────────────
+modifiers:
+  TIGHT_LIQ:
+    trigger: "liquidity < -30"
+    effect: "Reduces credit spreads on vertical spreads; favor wider strikes"
+
+  LOOSE_LIQ:
+    trigger: "liquidity > 30"
+    effect: "Accommodative backdrop; supports higher conviction on bullish spreads"
+
+  HIGH_VOL:
+    trigger: "risk < -30"
+    effect: "Elevated volatility; widen strikes, reduce position size"
+
+  LOW_VOL:
+    trigger: "risk > 30"
+    effect: "Vol compression; credit spreads cheap; ideal for premium selling"
+
+  VOL_CRUSH_IMMINENT:
+    trigger: "vix_term < -3 AND vvix > 120"
+    effect: "Backwardated term structure with high vol-of-vol; avoid selling premium"
+
+# ── STRATEGY SELECTION ────────────────────────────────────────────────────────
+strategy_map:
+  GOLDILOCKS:
+    strategy: "Bull Put Spread"
+    type: credit
+    direction: bullish
+    rationale: "Sell downside puts in benign environment; collect time premium"
+
+  REFLATION:
+    strategy: "Bull Call Spread"
+    type: debit
+    direction: bullish
+    rationale: "Participate in upside with defined risk; inflation may weigh on multiples"
+
+  STAGFLATION:
+    strategy: "Bear Call Spread"
+    type: credit
+    direction: bearish
+    rationale: "Sell upside calls into deteriorating growth; collect premium with cap on risk"
+
+  DEFLATION:
+    strategy: "Bear Put Spread"
+    type: debit
+    direction: bearish
+    rationale: "Buy downside exposure with defined risk; avoid selling premium in high vol"
+
+  MIXED:
+    strategy: "Iron Condor"
+    type: credit
+    direction: neutral
+    rationale: "Range-bound with no directional edge; collect premium on both wings"
+
+# ── TRADE MANAGEMENT ─────────────────────────────────────────────────────────
+management:
+  credit_spreads:
+    take_profit: "50% of max credit"
+    stop_loss: "2x credit received (i.e., lose 2x what you collected)"
+    dte_exit: 7              # close at 7 DTE regardless of P&L to avoid gamma risk
+    adjustment: "Roll to next cycle if regime remains same at 50% profit"
+
+  debit_spreads:
+    take_profit: "100% of max value (i.e., spread fully in the money)"
+    stop_loss: "50% of premium paid"
+    dte_exit: 14
+    adjustment: "Roll up/down strikes if underlying moves significantly"
+
+  iron_condor:
+    take_profit: "50% of max credit"
+    stop_loss: "2x credit on either threatened wing"
+    dte_exit: 7
+    adjustment: "Close threatened wing at 2x credit; keep unthreatened wing"
+
+# ── POSITION SIZING ───────────────────────────────────────────────────────────
+position_sizing:
+  max_portfolio_risk_pct: 2.0   # max % of portfolio at risk per trade
+  conviction_scaling:           # multiplier on base size by conviction bucket
+    high: 1.0                   # conviction > 50
+    medium: 0.67                # conviction 20-50
+    low: 0.33                   # conviction < 20
+  vol_regime_scaling:
+    vix_lt_15: 1.0
+    vix_15_25: 0.80
+    vix_25_40: 0.60
+    vix_gt_40: 0.40
+
+# ── WIN PROBABILITY ADJUSTMENTS ──────────────────────────────────────────────
+win_probability:
+  base: "delta_implied"        # start from (1 - short_strike_delta) for credit spreads
+  regime_alignment_bonus: 0.05  # add 5pp when regime strongly aligns with trade direction
+  modifier_penalties:
+    HIGH_VOL: 0.03             # volatility regimes reduce edge slightly
+    VOL_CRUSH_IMMINENT: 0.05
+    TIGHT_LIQ: 0.02
+  modifier_bonuses:
+    LOW_VOL: 0.02              # calm markets slightly improve credit spread win rate
+    LOOSE_LIQ: 0.01
