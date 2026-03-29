@@ -167,28 +167,33 @@ def check_management_rules(
     )
 
     if current_value is not None and trade.entry_credit > 0:
-        # Credit spread P&L tracking
-        pnl_pct = (trade.entry_credit - current_value) / trade.entry_credit
+        # CREDIT spread: get_spread_value returns short_mid - long_mid (positive).
+        # This is the "cost to close" the position.
+        # P&L = entry_credit - cost_to_close.  Profit when cost_to_close shrinks.
+        cost_to_close = current_value
+        pnl = trade.entry_credit - cost_to_close
 
         # Take profit at 50% of max profit
-        if pnl_pct >= 0.50:
+        if pnl >= trade.entry_credit * 0.50:
             return Action("close", "take_profit_50pct")
 
-        # Stop loss at 2x credit received
-        if current_value >= trade.entry_credit * 2:
+        # Stop loss: lost more than the credit received (cost doubled)
+        if cost_to_close >= trade.entry_credit * 2:
             return Action("close", "stop_loss_2x")
 
     elif current_value is not None and trade.entry_credit < 0:
-        # Debit spread: profit when spread value increases
+        # DEBIT spread: get_spread_value returns short_mid - long_mid (NEGATIVE,
+        # because the long leg is worth more than the short leg).
+        # The spread's value to us = -current_value = long_mid - short_mid (positive).
         entry_debit = abs(trade.entry_credit)
-        gain = current_value - entry_debit
+        spread_value_to_us = abs(current_value)
 
-        # Take profit at 100% gain
-        if gain >= entry_debit:
+        # Take profit: spread now worth 2x what we paid
+        if spread_value_to_us >= entry_debit * 2:
             return Action("close", "take_profit_100pct")
 
-        # Stop loss at 50% of debit paid
-        if current_value <= entry_debit * 0.5:
+        # Stop loss: spread lost 50% of its value
+        if spread_value_to_us <= entry_debit * 0.50:
             return Action("close", "stop_loss_50pct")
 
     # Regime reversal check
@@ -248,11 +253,23 @@ def close_trade(
         else:
             exit_value = trade.entry_credit * 0.5  # conservative estimate
 
-    # Compute P&L (per share)
+    # Compute P&L (per share).
+    # exit_value = short_mid - long_mid from get_spread_value.
+    # For credit spreads: P&L = entry_credit - exit_value (profit when exit_value shrinks)
+    # For debit spreads: P&L = abs(exit_value) - abs(entry_credit) (profit when spread widens)
     if trade.strategy_type == "credit":
         pnl = trade.entry_credit - exit_value
     else:
-        pnl = exit_value - abs(trade.entry_credit)
+        pnl = abs(exit_value) - abs(trade.entry_credit)
+
+    # Apply realistic slippage: crossing half the bid-ask spread on each leg, entry + exit.
+    # Iron condors have 4 legs; all other spreads have 2 legs.
+    # Conservative estimates based on SPY options typical bid-ask spreads.
+    if trade.strategy == "iron_condor":
+        slippage = 0.30  # 4 legs × ~$0.075 per half-spread crossing
+    else:
+        slippage = 0.08  # 2 legs × ~$0.04 per half-spread crossing
+    pnl -= slippage
 
     trade.exit_date = current_date
     trade.exit_value = exit_value

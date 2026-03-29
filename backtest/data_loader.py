@@ -77,7 +77,7 @@ class BacktestDataLoader:
         dte_range: tuple[int, int] = (14, 75),
         option_type: str | None = None,
         delta_range: tuple[float, float] | None = None,
-        min_oi: int = 100,
+        min_oi: int = 0,
         source: str | None = None,
     ) -> pd.DataFrame:
         """Query the option chain for a specific trading day.

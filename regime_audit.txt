@@ -1,0 +1,361 @@
+==============================================================================================================
+  SECTION 1A: REGIME TIMELINE (168 months, 2010-01 through 2023-12)
+==============================================================================================================
+      Date  Growth    Infl     Liq    Risk          Label   SPY_1m   SPY_3m
+--------------------------------------------------------------------------------------------------------------
+2010-01-01     -36     +21     +87      -3    STAGFLATION    -3.0%    +4.0%
+2010-02-01     -46      +4     +88     -11          MIXED    +7.3%    +9.7%
+2010-03-01     -36      +6     +85      +7          MIXED    +4.6%    -2.1%
+2010-04-01     -15      -6     +83     +16          MIXED    -0.2%   -13.2%
+2010-05-01      +8      +2     +85     -17          MIXED    -5.8%    -4.1%
+2010-06-01     -41     -26     +80     -62      DEFLATION    -4.4%    +2.3%
+2010-07-01     -64     -38     +79     -49      DEFLATION    +9.8%   +12.1%
+2010-08-01     -16     -50     +80      -9          MIXED    -1.8%    +5.7%
+2010-09-01     -38     -58     +78      -4      DEFLATION    +2.5%   +10.8%
+2010-10-01      +7     -43     +81      -2          MIXED    +5.5%   +10.6%
+2010-11-01     +29     -35     +84      +7     GOLDILOCKS    +0.5%    +6.7%
+2010-12-01     +20     -25     +79      -2          MIXED    +3.4%    +7.8%
+2011-01-01     +26      -5     +79     +20     GOLDILOCKS    +3.0%    +5.0%
+2011-02-01     +28     +12     +78     +31     GOLDILOCKS    +1.0%    +1.9%
+2011-03-01     +25     +35     +79     +17      REFLATION    +0.5%    -0.6%
+2011-04-01     +21     +57     +78     +36      REFLATION    +1.2%    +0.5%
+2011-05-01     +16     +72     +81     +38          MIXED    -3.3%    -6.9%
+2011-06-01     +15     +58     +79     +26          MIXED    +2.7%    -9.7%
+2011-07-01     +15     +62     +80     +44          MIXED    -5.8%   -15.5%
+2011-08-01      -1     +64     +81      +0          MIXED    -1.9%    +3.2%
+2011-09-01     -11     +50     +75     -41          MIXED    -4.7%    +6.0%
+2011-10-01     -41     +37     +64     -69    STAGFLATION   +12.4%   +11.8%
+2011-11-01     +56     +52     +67     -55      REFLATION    -0.5%    +5.7%
+2011-12-01     +44     +51     +62     -20      REFLATION    +2.1%   +10.0%
+2012-01-01     +51     +52     +59      +3      REFLATION    +5.4%   +10.7%
+2012-02-01     +65     +51     +61     +23      REFLATION    +1.6%    +1.8%
+2012-03-01     +75     +55     +60     +25      REFLATION    +2.9%    -6.7%
+2012-04-01     +66     +58     +59     +30      REFLATION    -2.0%    -1.7%
+2012-05-01     +48     +54     +52     +38      REFLATION    -6.4%    -0.2%
+2012-06-01     +12     +20     +35     -20          MIXED    +7.2%   +10.3%
+2012-07-01     +39     +26     +35     +34      REFLATION    +1.4%    +5.2%
+2012-08-01     +60     +45     +38     +29      REFLATION    +1.4%    +1.6%
+2012-09-01     +71     +53     +36     +32      REFLATION    +3.7%    +0.3%
+2012-10-01     +70     +62     +34     +34      REFLATION    -3.1%    -0.2%
+2012-11-01     +54     +42     +32     +45      REFLATION    -0.3%    +6.8%
+2012-12-01     +34     +31     +27     +50      REFLATION    +3.2%    +8.2%
+2013-01-01     +46     +38     +43     +35      REFLATION    +3.3%    +6.5%
+2013-02-01     +82     +56     +47     +68      REFLATION    +3.3%    +8.0%
+2013-03-01     +77     +41     +51     +54      REFLATION    +1.6%    +7.1%
+2013-04-01     +65     +40     +51     +64      REFLATION    +3.5%    +3.5%
+2013-05-01     +66     +14     +68     +69     GOLDILOCKS    +1.8%    +5.9%
+2013-06-01     +66      +0     +75     +67     GOLDILOCKS    -1.4%    +0.1%
+2013-07-01     +63     -12     +74     +60     GOLDILOCKS    +6.0%    +4.9%
+2013-08-01     +55     -11     +81     +83     GOLDILOCKS    -3.8%    +3.1%
+2013-09-01     +58     -21     +79     +55     GOLDILOCKS    +1.9%    +8.5%
+2013-10-01     +59     -18     +78     +72     GOLDILOCKS    +4.3%    +9.2%
+2013-11-01     +79     -39     +81     +85     GOLDILOCKS    +1.6%    +0.7%
+2013-12-01     +76     -50     +80     +86     GOLDILOCKS    +1.8%    +4.4%
+2014-01-01     +64     -22     +84     +88     GOLDILOCKS    -4.9%    +1.9%
+2014-02-01     +34      -7     +81     +59     GOLDILOCKS    +7.3%    +7.5%
+2014-03-01     +55     +19     +78     +83     GOLDILOCKS    +0.5%    +2.8%
+2014-04-01     +66      +4     +72     +89     GOLDILOCKS    +0.9%    +6.3%
+2014-05-01     +70     +33     +71     +88      REFLATION    +2.5%    +2.3%
+2014-06-01     +69     +31     +67     +90      REFLATION    +2.6%    +3.8%
+2014-07-01     +82     +48     +67     +89      REFLATION    -2.9%    -1.9%
+2014-08-01     +66      +7     +63     +48     GOLDILOCKS    +4.2%    +4.8%
+2014-09-01     +60     -26     +55     +80     GOLDILOCKS    -1.8%    +3.8%
+2014-10-01     +51     -66     +45     +44     GOLDILOCKS    +2.6%    +4.6%
+2014-11-01     +67     -87     +41     +61     GOLDILOCKS    +3.2%    +0.3%
+2014-12-01     +70     -94     +14     +50     GOLDILOCKS    -1.0%    +1.2%
+2015-01-01     +89     -99      +1      -8     GOLDILOCKS    -0.4%    +0.4%
+2015-02-01     +28     -98      -3     -28     GOLDILOCKS    +1.7%    +2.4%
+2015-03-01     +55     -97      -2     +60     GOLDILOCKS    -1.8%    +0.5%
+2015-04-01     +58     -94      -9     +46     GOLDILOCKS    +2.3%    +0.4%
+2015-05-01     +45     -89      -5     +65     GOLDILOCKS    +0.3%    -0.4%
+2015-06-01     +71     -86     -21     +58     GOLDILOCKS    -1.3%    -7.0%
+2015-07-01     +58     -84     -18     +25     GOLDILOCKS    +1.2%    -5.9%
+2015-08-01     +44     -91     -35     +45     GOLDILOCKS    -6.6%    +0.5%
+2015-09-01     -34     -91     -48     -87      DEFLATION    +1.3%    +6.8%
+2015-10-01     -59     -89     -37     -71      DEFLATION    +8.2%    +4.6%
+2015-11-01     +58     -63     -34      -8     GOLDILOCKS    -0.4%    -9.6%
+2015-12-01     +83     -70     -81     -18     GOLDILOCKS    -2.7%    -4.7%
+2016-01-01     +48     -72     -87     -73     GOLDILOCKS    -4.9%    +2.9%
+2016-02-01     -33     -79     -87     -89      DEFLATION    +4.6%    +7.0%
+2016-03-01     +12     -71     -86     -74          MIXED    +3.3%    +5.3%
+2016-04-01     +90     -39     -80     -22     GOLDILOCKS    -0.6%    +1.7%
+2016-05-01     +78      -4     -78     -30     GOLDILOCKS    +2.6%    +5.2%
+2016-06-01     +24      +9     -82      +2     GOLDILOCKS    -0.2%    +3.8%
+2016-07-01     +17     +17     -79     -28          MIXED    +3.0%    +3.1%
+2016-08-01     +78     +35     -77      +9      REFLATION    +0.9%    -3.1%
+2016-09-01     +56     +46     -76     +25      REFLATION    -1.7%    +0.6%
+2016-10-01     +44     +74     -71     +23      REFLATION    -2.8%    +4.1%
+2016-11-01     -18     +69     -65     -41          MIXED    +5.3%    +9.2%
+2016-12-01     +31     +80     -76     +32      REFLATION    +2.5%    +8.5%
+2017-01-01     +47     +88     -76     +48      REFLATION    +1.3%    +4.0%
+2017-02-01     +66     +83     -72     +67      REFLATION    +3.6%    +4.5%
+2017-03-01     +77     +56     -74     +68      REFLATION    -1.3%    +2.4%
+2017-04-01     +56     +59     -74     +64      REFLATION    +1.4%    +2.8%
+2017-05-01     +35     +52     -72     +76      REFLATION    +2.3%    +3.6%
+2017-06-01     +57     +37     -71     +74      REFLATION    -0.8%    +1.5%
+2017-07-01     +44      +8     -78     +65     GOLDILOCKS    +2.0%    +4.2%
+2017-08-01     +50     +12     -72     +73     GOLDILOCKS    +0.2%    +4.1%
+2017-09-01     +25     +40     -68     +57      REFLATION    +2.1%    +6.7%
+2017-10-01      +9     +57     -69     +69          MIXED    +2.1%    +6.2%
+2017-11-01     +62     +25     -67     +67      REFLATION    +2.2%    +6.6%
+2017-12-01     +61     +26     -75     +55      REFLATION    +2.4%    +1.9%
+2018-01-01     +67     +85     -73     +50      REFLATION    +1.5%    -2.9%
+2018-02-01     +85     +88     -83     +32      REFLATION    -0.9%    -3.5%
+2018-03-01     +64     +93     -89     -57      REFLATION    -3.1%    +1.7%
+2018-04-01     +25     +93     -93     -31      REFLATION    +0.8%    +2.7%
+2018-05-01     +43     +96     -95     +26      REFLATION    +2.9%    +6.2%
+2018-06-01     +58     +94     -95     +36      REFLATION    -1.5%    +5.6%
+2018-07-01     +64     +93     -95      +6      REFLATION    +4.7%    +7.6%
+2018-08-01     +67     +84     -95     +52      REFLATION    +2.3%    -4.2%
+2018-09-01     +78     +88     -93     +54      REFLATION    -0.2%    -3.7%
+2018-10-01     +70     +91     -95     +68      REFLATION    -6.1%   -13.5%
+2018-11-01     -18     +69     -96     -16          MIXED    -0.5%    -0.6%
+2018-12-01     -50     +43     -96     -15    STAGFLATION    -9.7%    +3.4%
+2019-01-01     -48      -1     -96     -77          MIXED    +7.0%   +13.8%
+2019-02-01     +35     +19     -93      +1     GOLDILOCKS    +1.9%    +8.1%
+2019-03-01     +78     +24     -90     +36      REFLATION    +2.5%    -1.5%
+2019-04-01     +74     +49     -85     +33      REFLATION    +2.4%    +4.0%
+2019-05-01     +79     +45     -82     +23      REFLATION    -6.6%    -0.5%
+2019-06-01      -3     +23     -78     -36          MIXED    +6.5%    +4.2%
+2019-07-01     +23     +16     -73     +20     GOLDILOCKS    -2.1%    -3.6%
+2019-08-01     +61     -13     -63     -37     GOLDILOCKS    -0.6%    +4.6%
+2019-09-01     +27     -29     -58     -55     GOLDILOCKS    +0.1%    +5.3%
+2019-10-01     +30     -28     -52     -49     GOLDILOCKS    +4.0%   +10.4%
+2019-11-01     +59      -2     -21     +16     GOLDILOCKS    +1.3%    +4.7%
+2019-12-01     +54     +19     -18     +16     GOLDILOCKS    +3.5%    -3.6%
+2020-01-01     +67     +39      +1     +10      REFLATION    +0.5%   -23.1%
+2020-02-01     +64      -6     +20     -61     GOLDILOCKS    -8.1%   -13.8%
+2020-03-01     -53     -82     +10     -96      DEFLATION   -20.8%    -1.6%
+2020-04-01    -100     -99     +76     -99      DEFLATION   +14.4%   +25.9%
+2020-05-01     -99    -100     +79     -99      DEFLATION   +10.0%   +15.1%
+2020-06-01      +1     -98     +88     -93          MIXED    +0.3%   +14.9%
+2020-07-01     +35     -88     +91     -92     GOLDILOCKS    +5.3%    +7.0%
+2020-08-01     +41     -73     +92     -77     GOLDILOCKS    +4.7%    +0.0%
+2020-09-01     +59     -53     +93     -79     GOLDILOCKS    -2.5%    +7.1%
+2020-10-01     +15     -76     +90     -77          MIXED    +0.6%   +11.9%
+2020-11-01     -28     -76     +90     -92      DEFLATION    +7.7%   +11.1%
+2020-12-01     +48     -42     +91     -29     GOLDILOCKS    +1.1%    +1.9%
+2021-01-01     +37     +59     +92     -30      REFLATION    +3.5%    +8.6%
+2021-02-01      +5     +97     +93     -57          MIXED    -0.7%    +7.6%
+2021-03-01     +26     +98     +94     -11      REFLATION    +6.3%   +11.6%
+2021-04-01     +11     +99     +94     +28          MIXED    +3.8%    +8.3%
+2021-05-01     +32     +99     +94     +17      REFLATION    +0.8%    +5.3%
+2021-06-01     +39     +99     +94     +12      REFLATION    +2.7%    +7.3%
+2021-07-01     +22     +99     +91     +38      REFLATION    +1.7%    +0.1%
+2021-08-01     +35     +99     +90     +15      REFLATION    +3.2%    +5.2%
+2021-09-01     +40     +98     +88     +33      REFLATION    -5.4%    +0.1%
+2021-10-01      +4     +98     +88     +14          MIXED    +8.4%   +10.8%
+2021-11-01     +35     +99     +84     +34      REFLATION    -2.9%    -2.1%
+2021-12-01     +36     +98     +79     -59      REFLATION    +5.4%    -4.7%
+2022-01-01     +40     +99     +76     +30      REFLATION    -6.5%    -4.4%
+2022-02-01      +1     +98     +65      -3          MIXED    -3.6%    -7.7%
+2022-03-01     -15     +99     +54     -67          MIXED    +4.8%    -3.4%
+2022-04-01     +24     +98     +14      +6      REFLATION    -6.1%   -16.5%
+2022-05-01     -17     +98      -2     -62          MIXED    -4.3%    -4.9%
+2022-06-01     -27     +98     -24     -19    STAGFLATION    -7.1%    -4.5%
+2022-07-01     -55     +95     -56     -58    STAGFLATION    +8.7%    -6.3%
+2022-08-01     +44     +92     -65     -17      REFLATION    -5.3%    -9.5%
+2022-09-01     +41     +86     -76     -29      REFLATION    -3.7%    +3.7%
+2022-10-01     -35     +76     -90     -64    STAGFLATION    -1.8%    +1.2%
+2022-11-01     -27     +80     -92     -10    STAGFLATION    +8.1%   +10.7%
+2022-12-01     +29     +69     -91     +14      REFLATION    -6.4%    -0.7%
+2023-01-01     +27     +60     -91      +0      REFLATION    +7.5%    +6.5%
+2023-02-01     +28     +56     -88     +23      REFLATION    -1.9%    +0.1%
+2023-03-01     +20     +55     -91     +21      REFLATION    +1.7%    +5.9%
+2023-04-01     +28     +33     -87      +4      REFLATION    -0.9%    +8.6%
+2023-05-01     +28     +29     -87     +19      REFLATION    +5.6%   +11.1%
+2023-06-01     +35     +14     -87     +18     GOLDILOCKS    +3.7%    +5.4%
+2023-07-01     +45      +6     -88     +47     GOLDILOCKS    +1.1%    -3.7%
+2023-08-01     +43      +8     -86     +49     GOLDILOCKS    +1.0%    -3.6%
+2023-09-01     +17      +8     -83     +53          MIXED    -5.9%    +1.7%
+2023-10-01     -25      +8     -82     +34          MIXED    +2.4%   +11.9%
+2023-11-01      -7      -9     -79     +20          MIXED    +5.0%    +9.3%
+2023-12-01     +33     -30     -76     +46     GOLDILOCKS    +4.1%    +4.1%
+
+==============================================================================================================
+  SECTION 1B: REGIME DIRECTION ACCURACY
+==============================================================================================================
+
+1-MONTH HORIZON (excluding MIXED):
+  Overall: 83/137 = 60.6%
+          Regime  Correct  Incorrect     N  Accuracy
+      GOLDILOCKS       34         18    52 65%:>9
+       REFLATION       43         25    68 63%:>9
+     STAGFLATION        4          3     7 57%:>9
+       DEFLATION        2          8    10 20%:>9
+           MIXED      ---        ---    31  excluded
+
+3-MONTH HORIZON (excluding MIXED):
+  Overall: 92/137 = 67.2%
+          Regime  Correct  Incorrect     N  Accuracy
+      GOLDILOCKS       42         10    52 81%:>9
+       REFLATION       47         21    68 69%:>9
+     STAGFLATION        2          5     7 29%:>9
+       DEFLATION        1          9    10 10%:>9
+           MIXED      ---        ---    31  excluded
+
+==============================================================================================================
+  SECTION 1C: REGIME ACCURACY AT 16 KNOWN MACRO EVENTS
+==============================================================================================================
+
+      Date      G      I      L      R         Engine       Expected   Result
+-------------------------------------------------------------------------------------
+2010-06-01    -41    -26    +80    -62      DEFLATION      DEFLATION    MATCH
+2011-08-01     -1    +64    +81     +0          MIXED      DEFLATION     MISS
+2013-06-03    +66     +4    +75    +63     GOLDILOCKS          MIXED     MISS
+2015-08-24    -41    -95    -46    -92      DEFLATION      DEFLATION    MATCH
+2016-06-24     -1    -17    -79    -94          MIXED          MIXED    MATCH
+2017-06-01    +57    +37    -71    +74      REFLATION     GOLDILOCKS     MISS
+2018-02-05    +55    +88    -83    -78      REFLATION          MIXED     MISS
+2018-12-24    -72    -12    -96    -90          MIXED      DEFLATION     MISS
+2019-07-01    +23    +16    -73    +20     GOLDILOCKS     GOLDILOCKS    MATCH
+2020-03-16    -90    -94     +3    -99      DEFLATION      DEFLATION    MATCH
+2020-11-02    -24    -75    +90    -91      DEFLATION      REFLATION     MISS
+2021-06-01    +39    +99    +94    +12      REFLATION      REFLATION    MATCH
+2022-06-15    -63    +97    -43    -54    STAGFLATION    STAGFLATION    MATCH
+2022-10-03    -20    +79    -90    -59    STAGFLATION    STAGFLATION    MATCH
+2023-01-03    +29    +58    -91     -5      REFLATION          MIXED     MISS
+2023-07-03    +45     +7    -88    +48     GOLDILOCKS     GOLDILOCKS    MATCH
+
+Score: 9/16 correct
+
+Mismatch details:
+  2011-08-01: engine=MIXED, expected=DEFLATION
+    Context: US credit downgrade, debt ceiling crisis, VIX 48
+    Problem: Growth=-1 (should be < -20 for DEFLATION)
+    Problem: Inflation=+64 (should be < +20 for DEFLATION)
+  2013-06-03: engine=GOLDILOCKS, expected=MIXED
+    Context: Taper tantrum, rising yields but growth OK
+  2017-06-01: engine=REFLATION, expected=GOLDILOCKS
+    Context: Low vol, steady growth, low inflation
+  2018-02-05: engine=REFLATION, expected=MIXED
+    Context: Volmageddon, VIX spike, strong economy
+  2018-12-24: engine=MIXED, expected=DEFLATION
+    Context: Christmas Eve crash, Fed overtightening
+  2020-11-02: engine=DEFLATION, expected=REFLATION
+    Context: Vaccine news, massive stimulus, recovery
+    Problem: Growth=-24 (should be > +20 for REFLATION)
+    Problem: Inflation=-75 (should be > +20 for REFLATION)
+  2023-01-03: engine=REFLATION, expected=MIXED
+    Context: Inflation falling, growth unclear, soft landing debate
+
+==============================================================================================================
+  SECTION 1D: AXIS SCORE DISTRIBUTIONS (all trading days 2010-2023)
+==============================================================================================================
+
+        Axis    Mean  Median  StdDev     Min     Max   <-50 -50/-20 -20/+20 +20/+50   >+50
+----------------------------------------------------------------------------------------------------
+      growth   +33.3   +40.1    39.3    -100     +94     4%      8%     19%     28%    41%
+   inflation   +13.6   +20.7    60.5    -100     +99    18%     11%     20%     19%    32%
+   liquidity    +2.9   +18.5    73.0     -97     +95    38%      4%      8%      8%    42%
+        risk   +11.3   +18.4    49.1    -100     +91    14%     12%     26%     24%    25%
+
+==============================================================================================================
+  SECTION 1E: REGIME TRANSITION QUALITY
+==============================================================================================================
+
+Total transitions: 321
+
+                    Transition   N  SPY 20d before   SPY 20d after   Change
+--------------------------------------------------------------------------------
+           STAGFLATION → MIXED  21          -3.75%          -0.01%   +3.74%
+           MIXED → STAGFLATION  21          -2.92%          -0.21%   +2.71%
+             DEFLATION → MIXED  12          -0.33%          +0.99%   +1.32%
+            MIXED → GOLDILOCKS  39          +1.89%          +0.88%   -1.02%
+             MIXED → REFLATION  61          +1.20%          +0.30%   -0.90%
+            GOLDILOCKS → MIXED  41          +1.24%          +0.67%   -0.57%
+             MIXED → DEFLATION  12          -0.82%          -0.37%   +0.45%
+        GOLDILOCKS → REFLATION  26          +1.37%          +1.01%   -0.36%
+             REFLATION → MIXED  58          +0.40%          +0.58%   +0.18%
+        REFLATION → GOLDILOCKS  29          +1.45%          +1.29%   -0.16%
+
+Regime duration statistics:
+
+        Regime    N   Mean  Median   Min   Max
+    GOLDILOCKS   68     26       8     1   395
+     REFLATION   87     21       6     1   222
+   STAGFLATION   22     10       5     1    50
+     DEFLATION   12     22       8     1    92
+         MIXED  133      8       3     1    97
+
+==============================================================================================================
+  SECTION 1F: GROWTH AXIS INDICATOR DEEP DIVE
+==============================================================================================================
+
+      Indicator Weight    Z(2019-07-01)    Z(2020-03-16)    Z(2022-06-15)  Corr_SPY_1m                 Note
+--------------------------------------------------------------------------------------------------------------
+     CLAIMS_4WK   0.23           -0.784           -0.245           -0.453       -0.158                     
+ HOUSING_STARTS   0.10           +0.534           +0.160           +0.576       -0.066                     
+        ISM_MFG   0.12           +1.716           +0.654           +0.844       -0.098          WRONG@crash
+        NFP_3MA   0.15           -1.550           -3.000           +0.133       -0.126                     
+     SPX_RTN_3M   0.40           +0.066           -3.000           -2.543       -0.186                     
+
+==============================================================================================================
+  SECTION 1G: INFLATION AXIS VERIFICATION FOR 2022
+==============================================================================================================
+
+  Month  I_Score BREAKEVEN_5Y_raw BREAKEVEN_5Y_z  CPI_YOY_raw  CPI_YOY_z PCE_CORE_YOY_raw PCE_CORE_YOY_z      WTI_raw      WTI_z
+------------------------------------------------------------------------------------------------------------------------
+2022-01      +99         2.87     +1.919         6.64     +2.981         4.72     +3.000        75.33     +1.304
+2022-02      +98         2.80     +1.700         6.71     +2.761         4.56     +2.675        88.22     +2.137
+2022-03      +99         3.14     +2.224         7.19     +2.834         4.45     +2.384       103.66     +3.000
+2022-04      +98         3.28     +2.250         6.62     +2.286         4.33     +2.114        99.32     +2.392
+2022-05      +98         3.30     +2.129         7.13     +2.409         4.26     +1.933       104.59     +2.505
+2022-06      +98         2.96     +1.516         8.17     +2.741         4.54     +2.058       115.26     +2.832
+2022-07      +95         2.60     +0.920         7.67     +2.281         4.55     +1.944       110.30     +2.350
+2022-08      +92         2.72     +1.073         6.71     +1.712         4.62     +1.894        96.59     +1.593
+2022-09      +86         2.52     +0.745         6.25     +1.436         4.53     +1.731        87.09     +1.101
+2022-10      +76         2.14     +0.171         6.11     +1.320         4.30     +1.482        79.91     +0.754
+2022-11      +80         2.65     +0.899         5.75     +1.117         4.07     +1.263        88.36     +1.107
+2022-12      +69         2.45     +0.587         5.04     +0.779         3.99     +1.153        81.06     +0.748
+
+Inflation axis score range in 2022: +69 to +99
+All months above +50: YES
+
+==============================================================================================================
+  PART 1: REGIME CLASSIFICATION AUDIT SUMMARY
+==============================================================================================================
+
+DIRECTION ACCURACY:
+  1-month horizon (excluding MIXED): 83/137 = 60.6%
+  3-month horizon (excluding MIXED): 92/137 = 67.2%
+
+  Per regime (1-month):
+        GOLDILOCKS: 65% correct (52 observations, 34 correct, 18 incorrect)
+         REFLATION: 63% correct (68 observations, 43 correct, 25 incorrect)
+       STAGFLATION: 57% correct (7 observations, 4 correct, 3 incorrect)
+         DEFLATION: 20% correct (10 observations, 2 correct, 8 incorrect)
+             MIXED: 31 observations (excluded)
+
+  Per regime (3-month):
+        GOLDILOCKS: 81% correct (52 observations)
+         REFLATION: 69% correct (68 observations)
+       STAGFLATION: 29% correct (7 observations)
+         DEFLATION: 10% correct (10 observations)
+             MIXED: 31 observations (excluded)
+
+KNOWN EVENT ACCURACY: 9/16 correct
+  Mismatches:
+    2011-08-01: engine=MIXED, expected=DEFLATION — US credit downgrade, debt ceiling crisis, VIX 48
+    2013-06-03: engine=GOLDILOCKS, expected=MIXED — Taper tantrum, rising yields but growth OK
+    2017-06-01: engine=REFLATION, expected=GOLDILOCKS — Low vol, steady growth, low inflation
+    2018-02-05: engine=REFLATION, expected=MIXED — Volmageddon, VIX spike, strong economy
+    2018-12-24: engine=MIXED, expected=DEFLATION — Christmas Eve crash, Fed overtightening
+    2020-11-02: engine=DEFLATION, expected=REFLATION — Vaccine news, massive stimulus, recovery
+    2023-01-03: engine=REFLATION, expected=MIXED — Inflation falling, growth unclear, soft landing debate
+
+AXIS DISTRIBUTIONS:
+        Growth: mean=+33.3, std=39.3, dead zone [-20,+20]=19%
+     Inflation: mean=+13.6, std=60.5, dead zone [-20,+20]=20%
+     Liquidity: mean=+2.9, std=73.0, dead zone [-20,+20]=8%
+          Risk: mean=+11.3, std=49.1, dead zone [-20,+20]=26%
+
+2022 INFLATION AXIS:
+  Score range: +69 to +99
+  Correctly elevated (all >+50): YES
+
+OVERALL VERDICT:
+  Regime engine reliability: PARTIAL
+  Direction accuracy: 61% (marginal — near 60% threshold)
+  Ready for options strategy layer: YES WITH CAVEATS
+

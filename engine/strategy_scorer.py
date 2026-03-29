@@ -75,6 +75,11 @@ def score_strategy(strategy: str, cv: ConditionVector) -> float:
         )
         transition_penalty = max(0, cv.growth_delta) * -0.15
 
+        # Direction gate: selling calls against a strong bullish growth trend is wrong.
+        # Vol edge should NOT override clearly positive growth.
+        if cv.growth > 20:
+            direction_score -= (cv.growth - 20) * 0.25
+
         # If vol is already cheap (contango + low VVIX), halve vol edge
         if cv.vix_term > 5 and cv.vvix < 90:
             vol_edge_score *= 0.5
@@ -107,14 +112,15 @@ def score_strategy(strategy: str, cv: ConditionVector) -> float:
             cv.growth * 0.35
             - cv.inflation * 0.10
         )
-        # Debit spreads want LOW vol
+        # Debit spreads want LOW vol — buying options when vol is high is expensive
         vol_cost_score = (
             cv.risk * 0.15
             + max(0, 20 - cv.vix) * 0.5
             + (1 if cv.low_vol else 0) * 8
         )
-        if cv.vix > 25:
-            vol_cost_score -= (cv.vix - 25) * 0.6
+        # Progressive penalty: debit calls get increasingly expensive above VIX 20
+        if cv.vix > 20:
+            vol_cost_score -= (cv.vix - 20) * 0.8
 
         liquidity_score = cv.liquidity * 0.15
         momentum_bonus = max(0, cv.growth_delta) * 0.20
@@ -132,8 +138,10 @@ def score_strategy(strategy: str, cv: ConditionVector) -> float:
         )
         if cv.skew > 140:
             vol_cost_score -= (cv.skew - 140) * 0.5
-        if cv.vix > 30:
-            vol_cost_score -= (cv.vix - 30) * 0.4
+        # Buying puts when vol is elevated is paying inflated premiums.
+        # Bear CALL spreads (credit) are strictly better in high-vol bearish environments.
+        if cv.vix > 22:
+            vol_cost_score -= (cv.vix - 22) * 1.2
 
         momentum_bonus = max(0, -cv.growth_delta) * 0.20
         return direction_score + vol_cost_score + momentum_bonus

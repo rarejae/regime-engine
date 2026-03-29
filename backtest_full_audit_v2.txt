@@ -1,0 +1,297 @@
+================================================================================
+  MACRO REGIME ENGINE — FULL BACKTEST AUDIT
+================================================================================
+
+Running pre-COVID window (2010-01-04 to 2020-02-19)...
+  → 215 trades
+Running post-COVID window (2020-02-20 to 2023-12-29)...
+  → 97 trades
+
+Total trades: 312
+
+================================================================================
+  SECTION 1: OVERALL SUMMARY
+================================================================================
+
+PRE-COVID (2010-01 to 2020-02):
+  Total trades:          215
+  Win rate:              78.6%
+  Total P&L/contract:    $35,504
+  Annualized return:     3.05%
+  Sharpe ratio:          3.04
+  Profit factor:         7.81
+  Max drawdown:          -0.40%
+  Max consecutive wins:  17
+  Max consecutive losses:4
+  Avg days held:         15.1
+  Avg win P&L:           $2.41/share
+  Avg loss P&L:          $-1.13/share
+
+POST-COVID (2020-02 to 2023-12):
+  Total trades:          97
+  Win rate:              70.1%
+  Total P&L/contract:    $17,026
+  Annualized return:     4.16%
+  Sharpe ratio:          2.96
+  Profit factor:         5.19
+  Max drawdown:          -0.93%
+  Max consecutive wins:  18
+  Max consecutive losses:5
+  Avg days held:         12.5
+  Avg win P&L:           $3.10/share
+  Avg loss P&L:          $-1.40/share
+
+COMBINED (2010-2023):
+  Total trades:          312
+  Win rate:              76.0%
+  Total P&L/contract:    $52,530
+  Annualized return:     3.07%
+  Sharpe ratio:          3.02
+  Profit factor:         6.67
+  Max drawdown:          -0.68%
+  Max consecutive wins:  18
+  Max consecutive losses:5
+  Avg days held:         14.3
+  Avg win P&L:           $2.61/share
+  Avg loss P&L:          $-1.24/share
+
+================================================================================
+  SECTION 2: PERFORMANCE BY YEAR
+================================================================================
+
+Year Trades   WinR    P&L($)  Sharpe     PF AvgDays                                         Best Trade                                        Worst Trade
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+2010     16   75%     +2240    1.81   5.15    21.8                  2010-06-08 iron_condor     $+5.53                  2010-04-12 bull_call_sprea $-2.56  [DEFLATION]
+2011     13   85%     +2942    2.48   8.27    22.9                  2011-08-15 iron_condor     $+5.83                  2011-09-12 bear_call_sprea $-2.12  [REFLATION]
+2012      9   78%     +1115    1.27   5.62    40.8                  2012-06-04 iron_condor     $+6.02                  2012-09-17 bull_call_sprea $-1.43  [REFLATION]
+2013      9   78%      +169    0.53   1.62    37.8                  2013-06-28 bull_call_sprea $+0.99                  2013-12-26 bull_call_sprea $-1.75  [GOLDILOCKS]
+2014     11   73%      +276    1.14   2.55    30.6                  2014-12-15 bull_put_spread $+0.88                  2014-09-24 bull_call_sprea $-1.38  [GOLDILOCKS]
+2015     21   67%     +2524    1.94   3.36    14.0                  2015-09-01 iron_condor     $+6.04                  2015-09-28 bear_call_sprea $-2.40  [GOLDILOCKS]
+2016     38   82%     +8627    6.90  15.58     7.6                  2016-09-12 iron_condor     $+4.46                  2016-01-19 bear_call_sprea $-1.93  [GOLDILOCKS]
+2017     18   89%     +1874    3.16  88.19    17.9                  2017-09-26 iron_condor     $+3.85                  2017-07-31 bull_call_sprea $-0.14  [REFLATION]
+2018     26   58%     +2117    1.68   2.58    12.3                  2018-03-05 iron_condor     $+4.48                  2018-03-07 bull_call_sprea $-2.56  [REFLATION]
+2019     52   88%    +13536    9.33  25.37     6.1                  2019-06-17 iron_condor     $+4.58                  2019-04-23 bull_call_sprea $-1.40  [GOLDILOCKS]
+2020     21   62%       +38    0.04   1.02    14.1                  2020-03-13 bear_call_sprea $+5.24                  2020-03-23 bear_call_sprea $-3.62  [GOLDILOCKS]
+2021     11  100%     +2779    3.27    inf    31.5                  2021-03-02 iron_condor     $+5.09                  2021-04-06 bull_call_sprea $+0.16  [REFLATION]
+2022     27   59%     +4192    2.53   3.56    11.7                  2022-08-31 iron_condor     $+5.70                  2022-06-13 bear_call_sprea $-2.73  [MIXED]
+2023     40   75%    +10101    6.45  12.46     6.8                  2023-05-31 iron_condor     $+4.66                  2023-03-13 bear_call_sprea $-1.69  [MIXED]
+
+================================================================================
+  SECTION 3: PERFORMANCE BY STRATEGY
+================================================================================
+
+            Strategy     N   WinR   AvgPnL     PF AvgDays  TotPnL($)   BestYr  WorstYr
+------------------------------------------------------------------------------------------
+     bull_put_spread    42   71%    -0.04   0.90    11.4       -174     2014     2020
+    bull_call_spread    74   70%    +0.04   1.14    35.3       +313     2021     2018
+    bear_call_spread    55   31%    -0.24   0.74    12.2      -1294     2020     2022
+     bear_put_spread     3    0%    -1.04   0.00    18.0       -313     2020     2010
+         iron_condor   138  100%    +3.91    inf     4.7     +53998     2019     2012
+
+================================================================================
+  SECTION 4: PERFORMANCE BY REGIME
+================================================================================
+
+GOLDILOCKS: 100 trades, 79% win rate, $+11,562 P&L
+  Most used:  bull_call_spread (38)
+  Best perf:  iron_condor ($+11,534)
+        bull_call_spread:  38 trades, 66% WR, $+142
+         bull_put_spread:  27 trades, 70% WR, $-114
+             iron_condor:  35 trades, 100% WR, $+11,534
+
+REFLATION: 86 trades, 83% win rate, $+16,205 P&L
+  Most used:  iron_condor (36)
+  Best perf:  iron_condor ($+15,210)
+        bear_call_spread:  11 trades, 55% WR, $+715
+        bull_call_spread:  33 trades, 76% WR, $+356
+         bull_put_spread:   6 trades, 67% WR, $-77
+             iron_condor:  36 trades, 100% WR, $+15,210
+
+STAGFLATION: 13 trades, 46% win rate, $-368 P&L
+  Most used:  bear_call_spread (12)
+  Best perf:  iron_condor ($+428)
+        bear_call_spread:  12 trades, 42% WR, $-796
+             iron_condor:   1 trades, 100% WR, $+428
+
+DEFLATION: 19 trades, 63% win rate, $+3,573 P&L
+  Most used:  iron_condor (9)
+  Best perf:  iron_condor ($+4,314)
+        bear_call_spread:   6 trades, 17% WR, $-620
+         bear_put_spread:   2 trades, 0% WR, $-215
+         bull_put_spread:   2 trades, 100% WR, $+94
+             iron_condor:   9 trades, 100% WR, $+4,314
+
+MIXED: 94 trades, 73% win rate, $+21,559 P&L
+  Most used:  iron_condor (57)
+  Best perf:  iron_condor ($+22,513)
+        bear_call_spread:  26 trades, 19% WR, $-593
+         bear_put_spread:   1 trades, 0% WR, $-98
+        bull_call_spread:   3 trades, 67% WR, $-186
+         bull_put_spread:   7 trades, 71% WR, $-77
+             iron_condor:  57 trades, 100% WR, $+22,513
+
+================================================================================
+  SECTION 5: STRATEGY × REGIME CROSS-TAB (Win Rate / N trades)
+================================================================================
+
+                          GOLDILOCKS       REFLATION     STAGFLATION       DEFLATION           MIXED
+----------------------------------------------------------------------------------------------------
+     bull_put_spread    70% ( 27)      67% (  6)               ---   100% (  2)      71% (  7)  
+    bull_call_spread    66% ( 38)      76% ( 33)               ---             ---    67% (  3)  
+    bear_call_spread             ---    55% ( 11)      42% ( 12)      17% (  6)      19% ( 26)  
+     bear_put_spread             ---             ---             ---     0% (  2)       0% (  1)  
+         iron_condor   100% ( 35)     100% ( 36)     100% (  1)     100% (  9)     100% ( 57)  
+
+================================================================================
+  SECTION 6: DRAWDOWN ANALYSIS
+================================================================================
+
+Equity curve: $10,000 → $62,530
+Peak: $62,536
+Max drawdown: -2.55% ($-431)
+  Peak date:   ~2015-05-22
+  Trough date: ~2015-08-28
+
+Significant drawdowns (> 3%):
+
+================================================================================
+  SECTION 7: MONTHLY RETURNS ($/contract)
+================================================================================
+
+          Jan     Feb     Mar     Apr     May     Jun     Jul     Aug     Sep     Oct     Nov     Dec     TOTAL
+-------------------------------------------------------------------------------------------------------------
+2010       --    +428     -98    +404      --    +844    +538    -186     +94     +32     +41     +89     +2188
+2011       --     +52      --     +31      --     +27    +406    +999    +576    -212   +1019     +51     +2949
+2012      +45      --     +78      --     +34    +503    +444      --     +72      --    -142     +57     +1092
+2013       --     +68     +46      --     +68     -48      --     +99     +50      --     +66     +63      +412
+2014       --    -176     +35      --     +52     +57      --     -25     +45     -19      --    +147      +117
+2015      -16    +104      --      +6     +72      --     -46    +154   +1012   +1358     -64     +32     +2612
+2016      +70   +1146    +804     +40    +480   +3046    +616     +50   +2358     +76    -172     -28     +8484
+2017      +39     +42     +44     +36     +22     +18     +26    +980    +249    +385      +6     +18     +1864
+2018      +50    +319   +1496    +230    -200     +32     +66     +48     +84    -277     +86    +232     +2166
+2019    +1192   +4363     +11     +73    +713     +56   +3657    +258   +2431    +707     +64     +36    +13562
+2020      -26    -276    +981    -362    -152    -272     +82    +121    -347     +57    +116     +90       +12
+2021      +60    +458    +509    +468     +16      --    +100      --   +1036      --     +55      --     +2704
+2022      +76    +470   +1258    +256    +293    -266    -309     -20    +820    -288    -164   +1694     +3818
+2023     +732    -134     -44   +2610   +4489    +508     +28   +1145    +963     +94    +163      -6    +10550
+
+================================================================================
+  SECTION 8: TRADE MANAGEMENT ANALYSIS
+================================================================================
+
+              Exit Reason     N      %   WinR   AvgPnL  TotPnL($)
+------------------------------------------------------------------------
+       approaching_expiry   143   46%   64%    +0.91     +12944
+             stop_loss_2x    12    4%    0%    -1.51      -1816
+          stop_loss_50pct    12    4%    0%    -1.58      -1902
+        take_profit_50pct   143   46%  100%    +3.03     +43268
+               window_end     2    1%  100%    +0.17        +35
+
+Credit spreads: 235 trades, 79% WR, $+52,530
+Debit spreads:  77 trades, 68% WR, $+0
+
+================================================================================
+  SECTION 9: REGIME TRANSITION ANALYSIS
+================================================================================
+
+Total regime transitions: 87
+
+Transition frequencies:
+               REFLATION → MIXED:  14
+               MIXED → REFLATION:  14
+              MIXED → GOLDILOCKS:  13
+              GOLDILOCKS → MIXED:  12
+          REFLATION → GOLDILOCKS:   7
+               DEFLATION → MIXED:   6
+          GOLDILOCKS → REFLATION:   6
+               MIXED → DEFLATION:   5
+             STAGFLATION → MIXED:   4
+             MIXED → STAGFLATION:   4
+         STAGFLATION → REFLATION:   1
+          GOLDILOCKS → DEFLATION:   1
+
+Average regime persistence (days):
+        DEFLATION: avg=46d, median=48d, n=6
+       GOLDILOCKS: avg=90d, median=64d, n=20
+            MIXED: avg=32d, median=23d, n=36
+        REFLATION: avg=79d, median=63d, n=21
+      STAGFLATION: avg=45d, median=42d, n=5
+
+================================================================================
+  SECTION 10: EDGE ANALYSIS (Actual Win Rate vs Delta-Implied)
+================================================================================
+
+                         N  Actual WR   Implied WR     Edge
+------------------------------------------------------------
+BY STRATEGY:
+       bull_put_spread    42     71.4%       70.2%   +1.2% ✓
+      bull_call_spread    74     70.3%       21.3%  +49.0% ✓
+      bear_call_spread    55     30.9%       72.1%  -41.2% ✗
+       bear_put_spread     3      0.0%       40.5%  -40.5% ✗
+           iron_condor   138    100.0%       81.0%  +19.0% ✓
+
+BY REGIME:
+            GOLDILOCKS   100     79.0%       56.3%  +22.7% ✓
+             REFLATION    86     82.6%       56.6%  +25.9% ✓
+           STAGFLATION    13     46.2%       68.4%  -22.2% ✗
+             DEFLATION    19     63.2%       67.0%   -3.8% ✗
+                 MIXED    94     73.4%       75.9%   -2.5% ✗
+
+               OVERALL   312     76.0%       63.4%  +12.5%
+
+================================================================================
+  DIAGNOSIS
+================================================================================
+
+STRENGTHS:
+  - bull_put_spread: 71% win rate (42 trades)
+  - bull_call_spread: 70% win rate (74 trades)
+  - iron_condor: 100% win rate (138 trades)
+  - GOLDILOCKS regime: 79% win rate (100 trades)
+  - REFLATION regime: 83% win rate (86 trades)
+  - DEFLATION regime: 63% win rate (19 trades)
+  - MIXED regime: 73% win rate (94 trades)
+
+WEAKNESSES:
+  - bear_call_spread: only 31% win rate (55 trades)
+  - bear_put_spread: only 0% win rate (3 trades)
+
+SPECIFIC CONCERNS:
+  - Stop-loss exits: 8% of all trades (24 trades)
+  - Small sample: bull_put_spread × DEFLATION has only 2 trades
+  - Small sample: bull_call_spread × MIXED has only 3 trades
+  - Small sample: bear_put_spread × DEFLATION has only 2 trades
+  - Small sample: bear_put_spread × MIXED has only 1 trades
+  - Small sample: iron_condor × STAGFLATION has only 1 trades
+
+================================================================================
+  BACKTEST SUMMARY
+================================================================================
+
+PRE-COVID (2010-01 to 2020-02):
+  Trades:                215
+  Win rate:              78.6%
+  Sharpe:                3.04
+  Profit factor:         7.81
+  Total P&L/contract:    $35,504
+  Max drawdown:          -0.40%
+  Annualized return:     3.05%
+
+POST-COVID (2020-02 to 2023-12):
+  Trades:                97
+  Win rate:              70.1%
+  Sharpe:                2.96
+  Profit factor:         5.19
+  Total P&L/contract:    $17,026
+  Max drawdown:          -0.93%
+  Annualized return:     4.16%
+
+COMBINED (2010-2023):
+  Trades:                312
+  Win rate:              76.0%
+  Sharpe:                3.02
+  Profit factor:         6.67
+  Total P&L/contract:    $52,530
+  Max drawdown:          -0.68%
+  Annualized return:     3.07%
+

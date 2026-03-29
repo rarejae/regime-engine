@@ -158,11 +158,17 @@ def _find_wing(
         trade_date=trade_date,
         dte_range=(dte_min, dte_max),
         option_type=opt_type,
-        min_oi=50,
+        min_oi=0,  # optionsDX free EOD data does not include open_interest
     )
 
     if chain.empty:
         logger.debug(f"No chain data for {trade_date} {opt_type}")
+        return None
+
+    # Filter out rows with no market (bid=0 and ask=0)
+    chain = chain[(chain["bid"] > 0) | (chain["ask"] > 0)].copy()
+    if chain.empty:
+        logger.debug(f"No priced contracts for {trade_date} {opt_type}")
         return None
 
     # Get underlying close

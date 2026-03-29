@@ -13,15 +13,23 @@ Runs TWICE: pre-COVID and post-COVID windows, reports results separately.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from datetime import date
+from pathlib import Path
 from typing import Optional
 from uuid import uuid4
 
 from loguru import logger
 
 from backtest.data_loader import BacktestDataLoader
-from backtest.macro_backfill import compute_daily_condition_vectors, build_macro_history
+from backtest.macro_backfill import (
+    CONDITION_VECTORS_PATH,
+    RAW_INDICATORS_PATH,
+    compute_condition_vectors,
+    download_raw_indicators,
+    load_cached_condition_vectors,
+)
 from backtest.metrics import (
     portfolio_metrics,
     realized_pnl_metrics,
@@ -43,6 +51,10 @@ from engine.strategy_scorer import (
     select_short_delta,
     strategy_type,
 )
+
+
+PROCESSED_DIR = Path(__file__).parent.parent / "data" / "processed"
+VALIDATION_DIR = Path(__file__).parent.parent / "data" / "validation"
 
 
 @dataclass
@@ -77,6 +89,129 @@ class BacktestResult:
     by_source: dict = field(default_factory=dict)
 
 
+# ── Preflight checks ─────────────────────────────────────────────────────────
+
+
+def preflight_checks(
+    macro_start: str = "2005-01-01",
+    macro_end: str | None = None,
+) -> dict:
+    """Validate data availability before starting the backtest.
+
+    Checks:
+      1. Options data exists in data/processed/
+      2. Raw macro data exists (downloads if missing)
+      3. Recomputes condition vectors (always, depends on current weights)
+      4. Checks Dubach validation status
+
+    Returns:
+        Status dict with data availability info.
+    """
+    status: dict = {}
+
+    # 1. Check options data
+    parquet_files = sorted(PROCESSED_DIR.glob("spy_options_[0-9][0-9][0-9][0-9].parquet"))
+    if not parquet_files:
+        raise FileNotFoundError(
+            "No options data found in data/processed/. "
+            "Run: python data/ingest_optionsdx.py"
+        )
+
+    options_years = sorted(int(f.stem.replace("spy_options_", "")) for f in parquet_files)
+    status["options_years"] = options_years
+    logger.info(f"Options data: {min(options_years)}-{max(options_years)} ({len(options_years)} years)")
+
+    # 2. Check raw macro data (download if missing)
+    if not RAW_INDICATORS_PATH.exists():
+        logger.info("Raw macro data not found. Downloading from FRED (one-time)...")
+        download_raw_indicators(macro_start, macro_end)
+    else:
+        logger.info("Raw macro data: cached (skipping download)")
+    status["macro_raw_cached"] = True
+
+    # 3. Always recompute condition vectors (depends on current engine config)
+    logger.info("Computing condition vectors with current engine config...")
+    compute_condition_vectors()
+    status["condition_vectors_computed"] = True
+
+    # 4. Check Dubach validation
+    report_path = VALIDATION_DIR / "dubach_validation_report.json"
+    if report_path.exists():
+        with open(report_path) as f:
+            report = json.load(f)
+        status["dubach_validated"] = report.get("dubach_2008_2009_usable", False)
+    else:
+        status["dubach_validated"] = False
+    status["backtest_start_year"] = 2008 if status["dubach_validated"] else 2010
+
+    # Print summary
+    logger.info(f"Options data: {min(options_years)}-{max(options_years)}")
+    logger.info(f"Macro data: cached={status['macro_raw_cached']}")
+    logger.info(f"Dubach 2008-2009: {'included' if status['dubach_validated'] else 'excluded'}")
+    logger.info(f"Backtest window: {status['backtest_start_year']}-{max(options_years)}")
+
+    return status
+
+
+def print_status() -> None:
+    """Print current data availability status without running backtest."""
+    print()
+
+    # Options data
+    parquet_files = sorted(PROCESSED_DIR.glob("spy_options_[0-9][0-9][0-9][0-9].parquet"))
+    if parquet_files:
+        years = sorted(int(f.stem.replace("spy_options_", "")) for f in parquet_files)
+        total_size_mb = sum(f.stat().st_size for f in parquet_files) / 1024 / 1024
+        print(f"Options data: {min(years)}-{max(years)} ({len(years)} years, {total_size_mb:.0f} MB)")
+    else:
+        print("Options data: NOT FOUND — run: python data/ingest_optionsdx.py")
+
+    # Dubach data
+    dubach_files = sorted(PROCESSED_DIR.glob("spy_options_*_dubach.parquet"))
+    if dubach_files:
+        dub_years = sorted(int(f.stem.replace("spy_options_", "").replace("_dubach", "")) for f in dubach_files)
+        print(f"Dubach data: {min(dub_years)}-{max(dub_years)} ({len(dub_years)} years)")
+    else:
+        print("Dubach data: NOT FOUND — run: python data/ingest_dubach.py")
+
+    # Macro data
+    if RAW_INDICATORS_PATH.exists():
+        import pandas as pd
+        raw = pd.read_parquet(RAW_INDICATORS_PATH)
+        size_mb = RAW_INDICATORS_PATH.stat().st_size / 1024 / 1024
+        print(f"Macro indicators: cached (raw_indicators.parquet, {len(raw):,} rows x {len(raw.columns)} cols, {size_mb:.1f} MB)")
+    else:
+        print("Macro indicators: NOT CACHED — run: python -m backtest.macro_backfill")
+
+    # Condition vectors
+    if CONDITION_VECTORS_PATH.exists():
+        print("Condition vectors: cached (will recompute on next backtest run)")
+    else:
+        print("Condition vectors: not yet computed")
+
+    # Dubach validation
+    report_path = VALIDATION_DIR / "dubach_validation_report.json"
+    if report_path.exists():
+        with open(report_path) as f:
+            report = json.load(f)
+        validated = report.get("dubach_2008_2009_usable", False)
+        print(f"Dubach validation: {'PASS' if validated else 'FAIL'}")
+    else:
+        print("Dubach validation: not run — run: python data/validate_dubach.py")
+
+    # Ready check
+    ready = bool(parquet_files) and RAW_INDICATORS_PATH.exists()
+    start_year = 2008 if (report_path.exists() and report.get("dubach_2008_2009_usable", False)) else 2010
+    if parquet_files:
+        print(f"Ready for backtest: {'YES' if ready else 'NO'}")
+        if ready:
+            print(f"Backtest window: {start_year}-{max(years)}")
+    print()
+
+
+# ── Window runner ─────────────────────────────────────────────────────────────
+
+
 def run_window(
     window: str,
     start_date: date,
@@ -86,20 +221,7 @@ def run_window(
     run_id: str,
     max_trades: int | None = None,
 ) -> WindowResult:
-    """Run the backtest for a single window.
-
-    Args:
-        window: "pre_covid" or "post_covid".
-        start_date: Window start.
-        end_date: Window end.
-        condition_vectors: Pre-computed daily ConditionVectors.
-        loader: Data loader for option chains.
-        run_id: Run identifier.
-        max_trades: Optional cap on total trades (for testing).
-
-    Returns:
-        WindowResult with all metrics.
-    """
+    """Run the backtest for a single window."""
     logger.info(f"Running backtest window: {window} ({start_date} to {end_date})")
 
     trading_days = loader.trading_days(start_date, end_date)
@@ -110,16 +232,13 @@ def run_window(
     trade_count = 0
 
     for trade_date in trading_days:
-        # Step 1: Get condition vector for this day
         cv = condition_vectors.get(trade_date)
         if cv is None:
             continue
 
-        # Step 2: Score all 5 strategies
         ranked = rank_strategies(cv)
         top_strategy, top_score = ranked[0]
 
-        # Step 3: Open new trade if no open position
         if not open_trades:
             if max_trades is not None and trade_count >= max_trades:
                 continue
@@ -141,7 +260,6 @@ def run_window(
                 open_trades.append(trade)
                 trade_count += 1
 
-        # Step 4: Manage open trades
         for trade in open_trades[:]:
             action = check_management_rules(trade, trade_date, cv, loader)
             if action.action == "close":
@@ -149,14 +267,12 @@ def run_window(
                 closed_trades.append(trade)
                 open_trades.remove(trade)
 
-    # Force-close any remaining open trades at window end
     for trade in open_trades:
         trade = close_trade(trade, end_date, "window_end", loader)
         closed_trades.append(trade)
 
     logger.info(f"  Window {window}: {len(closed_trades)} trades closed")
 
-    # Compute metrics
     ra = regime_accuracy(closed_trades)
     shr = strategy_hit_rate(closed_trades, condition_vectors)
     pnl = realized_pnl_metrics(closed_trades)
@@ -178,15 +294,24 @@ def run_window(
     )
 
 
+# ── Main entry point ─────────────────────────────────────────────────────────
+
+
 def run_backtest(
     macro_start: str = "2005-01-01",
     max_trades_per_window: int | None = None,
+    window: str | None = None,
+    start_override: date | None = None,
+    end_override: date | None = None,
 ) -> BacktestResult:
     """Run the full dual-window backtest.
 
     Args:
         macro_start: Start date for FRED macro history pull.
-        max_trades_per_window: Optional cap on trades per window (for testing).
+        max_trades_per_window: Optional cap on trades per window.
+        window: If set, run only "pre_covid" or "post_covid".
+        start_override: Custom start date (overrides window defaults).
+        end_override: Custom end date (overrides window defaults).
 
     Returns:
         BacktestResult with both windows.
@@ -196,42 +321,54 @@ def run_backtest(
     run_id = str(uuid4())
     logger.info(f"Starting backtest run {run_id}")
 
-    # Determine pre-COVID start based on Dubach validation
-    dubach_ok = is_dubach_validated()
-    if dubach_ok:
-        pre_covid_start = date(2008, 1, 2)
-        logger.info("Dubach validated — pre-COVID window starts at 2008")
-    else:
-        pre_covid_start = date(2010, 1, 4)
-        logger.info("Dubach NOT validated — pre-COVID window starts at 2010")
+    # Preflight checks (downloads macro if needed, always recomputes CVs)
+    status = preflight_checks(macro_start)
 
-    pre_covid_end = date(2020, 2, 28)
-    post_covid_start = date(2020, 3, 1)
-    post_covid_end = date(2023, 12, 29)
-
-    # Build macro history and condition vectors
-    logger.info("Building macro history from FRED...")
-    macro_df = build_macro_history(macro_start)
-
-    logger.info("Computing daily ConditionVectors...")
-    condition_vectors = compute_daily_condition_vectors(macro_df)
+    # Load condition vectors
+    condition_vectors = load_cached_condition_vectors()
+    if condition_vectors is None:
+        raise RuntimeError("Condition vectors not computed — preflight should have done this")
 
     # Initialize data loader
     loader = BacktestDataLoader()
 
-    # Run both windows
-    pre_covid = run_window(
-        "pre_covid", pre_covid_start, pre_covid_end,
-        condition_vectors, loader, run_id, max_trades_per_window,
-    )
+    # Determine window boundaries
+    dubach_ok = status["dubach_validated"]
+    pre_covid_start = date(2008, 1, 2) if dubach_ok else date(2010, 1, 4)
+    pre_covid_end = date(2020, 2, 28)
+    post_covid_start = date(2020, 3, 1)
+    post_covid_end = date(2023, 12, 29)
 
-    post_covid = run_window(
-        "post_covid", post_covid_start, post_covid_end,
-        condition_vectors, loader, run_id, max_trades_per_window,
-    )
+    # Custom date range overrides both windows into a single window
+    if start_override and end_override:
+        result_window = run_window(
+            "custom", start_override, end_override,
+            condition_vectors, loader, run_id, max_trades_per_window,
+        )
+        return BacktestResult(
+            run_id=run_id,
+            run_timestamp=datetime.utcnow().isoformat(),
+            pre_covid=result_window,
+            post_covid=None,
+        )
+
+    pre_covid = None
+    post_covid = None
+
+    if window is None or window == "pre_covid":
+        pre_covid = run_window(
+            "pre_covid", pre_covid_start, pre_covid_end,
+            condition_vectors, loader, run_id, max_trades_per_window,
+        )
+
+    if window is None or window == "post_covid":
+        post_covid = run_window(
+            "post_covid", post_covid_start, post_covid_end,
+            condition_vectors, loader, run_id, max_trades_per_window,
+        )
 
     # Per-source breakdown
-    all_trades = pre_covid.trades + post_covid.trades
+    all_trades = (pre_covid.trades if pre_covid else []) + (post_covid.trades if post_covid else [])
     by_source = {}
     sources = set(t.source for t in all_trades)
     for src in sources:
@@ -250,10 +387,9 @@ def run_backtest(
         by_source=by_source,
     )
 
-    logger.info(
-        f"Backtest complete | "
-        f"Pre-COVID: {pre_covid.n_trades} trades, Sharpe={pre_covid.sharpe_ratio:.2f} | "
-        f"Post-COVID: {post_covid.n_trades} trades, Sharpe={post_covid.sharpe_ratio:.2f}"
-    )
+    if pre_covid:
+        logger.info(f"Pre-COVID: {pre_covid.n_trades} trades, Sharpe={pre_covid.sharpe_ratio:.2f}")
+    if post_covid:
+        logger.info(f"Post-COVID: {post_covid.n_trades} trades, Sharpe={post_covid.sharpe_ratio:.2f}")
 
     return result
