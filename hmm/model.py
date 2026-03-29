@@ -1,6 +1,6 @@
 """Core HMM model: fitting, prediction, rolling window management.
 
-Uses hmmlearn GaussianHMM with multivariate observations.
+Uses hmmlearn GaussianHMM with diagonal covariance and multivariate observations.
 Rolling window refitting ensures adaptation to regime changes.
 """
 
@@ -21,36 +21,35 @@ logger = logging.getLogger(__name__)
 class HMMResult:
     """Result of HMM fitting and prediction for a single date."""
     trade_date: pd.Timestamp
-    state_probabilities: np.ndarray   # shape (n_states,)
+    state_probabilities: np.ndarray
     most_likely_state: int
     confidence: float
     model_log_likelihood: float
     window_start: pd.Timestamp
-    window_end: pd.Timestamp          # always < trade_date for PIT
+    window_end: pd.Timestamp
 
 
 def fit_and_predict_rolling(
     features: pd.DataFrame,
     config: HMMConfig,
-) -> pd.DataFrame:
+) -> tuple[pd.DataFrame, object | None]:
     """Fit HMM on rolling windows and produce state probabilities for each date.
 
     For each prediction date t:
     1. Training window = [t - window_days, t - 1] (PIT safe)
     2. Fit GaussianHMM on the training window
-    3. Predict state probabilities from the full training sequence
-    4. Output state probabilities aligned to date t
+    3. Score the PREVIOUS observation (data known at t-1, aligned to t)
+    4. Output state probabilities
     """
-    clean = features.dropna()
-    feature_cols = [c for c in clean.columns if c in config.hmm_features]
+    clean = features[config.hmm_features].dropna()
 
-    if not feature_cols:
-        raise ValueError(f"No matching features found. Available: {list(clean.columns)}")
+    if len(clean) == 0:
+        raise ValueError("No clean rows after dropping NaN")
 
-    logger.info(
-        f"Fitting HMM with {config.n_states} states on {len(feature_cols)} features, "
-        f"window={config.window_days}d, refit every {config.refit_frequency}d"
-    )
+    logger.info(f"Fitting HMM: {config.n_states} states, {len(config.hmm_features)} features, "
+                f"cov={config.covariance_type}, window={config.window_days}d, "
+                f"refit={config.refit_frequency}d")
+    logger.info(f"Clean data: {len(clean)} rows [{clean.index.min().date()} to {clean.index.max().date()}]")
 
     results: list[HMMResult] = []
     last_fit_idx = -config.refit_frequency
@@ -61,7 +60,7 @@ def fit_and_predict_rolling(
         if (i - last_fit_idx) >= config.refit_frequency or current_model is None:
             train_end = i - 1
             train_start = max(0, train_end - config.window_days + 1)
-            train_data = clean.iloc[train_start : train_end + 1][feature_cols].values
+            train_data = clean.iloc[train_start:train_end + 1][config.hmm_features].values
 
             if len(train_data) < config.min_window_days // 2:
                 continue
@@ -88,40 +87,32 @@ def fit_and_predict_rolling(
         if current_model is None or current_scaler is None:
             continue
 
-        # Build full sequence up to t-1 to get proper Viterbi/forward path
-        seq_start = max(0, i - 1 - config.window_days + 1)
-        seq_end = i  # exclusive — so last element is i-1
-        seq_data = clean.iloc[seq_start:seq_end][feature_cols].values
-        seq_scaled = current_scaler.transform(seq_data)
+        prev_obs = clean.iloc[i - 1:i][config.hmm_features].values
+        prev_scaled = current_scaler.transform(prev_obs)
 
         try:
-            probs = current_model.predict_proba(seq_scaled)
-            # Take the LAST row — state at t-1, aligned to prediction date t
-            state_probs = probs[-1]
-
+            state_probs = current_model.predict_proba(prev_scaled)[0]
             results.append(HMMResult(
                 trade_date=clean.index[i],
                 state_probabilities=state_probs,
                 most_likely_state=int(np.argmax(state_probs)),
                 confidence=float(np.max(state_probs)),
-                model_log_likelihood=float(current_model.score(seq_scaled)),
-                window_start=clean.index[seq_start],
-                window_end=clean.index[seq_end - 1],
+                model_log_likelihood=float(current_model.score(prev_scaled)),
+                window_start=clean.index[max(0, i - 1 - config.window_days + 1)],
+                window_end=clean.index[i - 1],
             ))
         except Exception as e:
-            logger.debug(f"HMM predict failed at {clean.index[i]}: {e}")
+            logger.debug(f"Predict failed at {clean.index[i]}: {e}")
 
     if not results:
-        logger.error("No HMM predictions were generated")
-        return pd.DataFrame()
+        logger.error("No HMM predictions generated")
+        return pd.DataFrame(), None
 
     rows = []
     for r in results:
         row = {"trade_date": r.trade_date}
         for s in range(config.n_states):
-            row[f"state_{s}_prob"] = (
-                r.state_probabilities[s] if s < len(r.state_probabilities) else 0.0
-            )
+            row[f"state_{s}_prob"] = r.state_probabilities[s]
         row["most_likely_state"] = r.most_likely_state
         row["confidence"] = r.confidence
         row["log_likelihood"] = r.model_log_likelihood
@@ -129,19 +120,13 @@ def fit_and_predict_rolling(
 
     df = pd.DataFrame(rows)
     df["trade_date"] = pd.to_datetime(df["trade_date"])
-
     logger.info(f"Generated {len(df)} predictions, avg confidence: {df['confidence'].mean():.3f}")
-    return df
+    return df, current_model
 
 
-def fit_single_window(features: pd.DataFrame, config: HMMConfig):
-    """Fit HMM on a single window (for analysis and state inspection).
-
-    Returns (model, scaler, clean_data) tuple.
-    """
-    feature_cols = [c for c in features.columns if c in config.hmm_features]
-    clean = features[feature_cols].dropna()
-
+def fit_single_window(features: pd.DataFrame, config: HMMConfig) -> tuple:
+    """Fit HMM on a single window. Returns (model, scaler, clean_data)."""
+    clean = features[config.hmm_features].dropna()
     scaler = StandardScaler()
     scaled = scaler.fit_transform(clean.values)
 

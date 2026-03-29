@@ -1,0 +1,80 @@
+================================================================================
+  KRITZMAN TURBULENCE INDEX + MACRO CONTEXT — POC
+================================================================================
+Data: 6705 rows, 2005-01-01 to 2026-03-27
+
+Asset basket: 6703 days, 6 assets
+Raw turbulence: 6451 days
+Smoothed turbulence: mean=1.34, std=0.20, max=2.83
+
+2x2 classification: 6450 days
+
+2-state HMM on turbulence:
+  Normal state: mean=1.23, self-trans=0.989, implied dur=89d
+  Event state:  mean=1.55, self-trans=0.978, implied dur=45d
+
+Unconditional mean 1m return: 0.0077 (0.77%)
+
+───────────────────────────────────────────────────────────────────────────
+  2×2 TURBULENCE + MACRO CONTEXT
+───────────────────────────────────────────────────────────────────────────
+            Regime      N  %Time    Avg1m   Excess   Std1m  DirAcc  Sharpe  AvgDur
+  -------------------------------------------------------------------------
+         calm_bear   1981   31%  +0.43%  -0.34%  4.19%    43%   +0.36     13d
+         calm_bull   2975   46%  +0.91%  +0.14%  3.49%    50%   +0.91     23d
+         turb_bear   1021   16%  +0.56%  -0.21%  6.03%    47%   +0.32      8d
+         turb_bull    473    7%  +1.73%  +0.96%  3.36%    67%   +1.78      5d
+
+  Return separation: 0.309 (range of means / pooled std)
+  Range: 1.73% - 0.43% = 1.30%
+
+───────────────────────────────────────────────────────────────────────────
+  2-STATE HMM ON TURBULENCE
+───────────────────────────────────────────────────────────────────────────
+            Regime      N  %Time    Avg1m   Excess   Std1m  DirAcc  Sharpe  AvgDur
+  -------------------------------------------------------------------------
+             event   2103   33%  +0.76%  -0.01%  5.20%    50%   +0.51     51d
+            normal   4347   67%  +0.78%  +0.00%  3.62%    50%   +0.74    109d
+
+  Return separation: 0.003 (range of means / pooled std)
+  Range: 0.78% - 0.76% = 0.01%
+
+───────────────────────────────────────────────────────────────────────────
+  4-STATE HMM (CURRENT BEST)
+───────────────────────────────────────────────────────────────────────────
+            Regime      N  %Time    Avg1m   Excess   Std1m  DirAcc  Sharpe  AvgDur
+  -------------------------------------------------------------------------
+           state_0   1365   25%  +1.22%  +0.45%  3.66%    62%   +1.15     31d
+           state_1   1663   30%  +1.34%  +0.57%  3.93%    61%   +1.18     33d
+           state_2   1923   35%  +0.79%  +0.02%  3.67%    50%   +0.75     31d
+           state_3    555   10%  -0.17%  -0.94%  6.21%    48%   -0.10     22d
+
+  Return separation: 0.370 (range of means / pooled std)
+  Range: 1.34% - -0.17% = 1.51%
+
+───────────────────────────────────────────────────────────────────────────
+  TURBULENCE SPIKE VALIDATION
+───────────────────────────────────────────────────────────────────────────
+  2008-10-10 (            GFC peak): turb=1.99 (p80=1.55), 2x2=turb_bear, hmm=event
+  2011-08-08 (        US downgrade): turb=1.63 (p80=1.37), 2x2=turb_bear, hmm=event
+  2015-08-24 (         China deval): turb=1.44 (p80=1.51), 2x2=calm_bear, hmm=event
+  2020-03-16 (         COVID crash): turb=2.31 (p80=1.43), 2x2=turb_bear, hmm=event
+  2022-06-15 (   Rate hike selloff): turb=1.45 (p80=1.61), 2x2=calm_bear, hmm=event
+
+================================================================================
+  SUMMARY
+================================================================================
+
+  Return separation comparison:
+             4-state HMM: 0.360
+          2x2 turb+macro: 0.309
+        2-state HMM turb: 0.003
+
+  turb_bear excess return: -0.21% (PASS — negative)
+
+  Drawdown detection (turb_bear active during known drawdowns?):
+                GFC (2008-09-01 to 2009-03-01): turb_bear=38%, any_turb=38%
+       US downgrade (2011-07-01 to 2011-10-01): turb_bear=83%, any_turb=83%
+              COVID (2020-02-20 to 2020-03-23): turb_bear=83%, any_turb=83%
+          2022 bear (2022-01-01 to 2022-10-01): turb_bear=38%, any_turb=38%
+

@@ -1,7 +1,4 @@
-"""Generate analysis plots for HMM regime model.
-
-Requires matplotlib. Plots are saved to hmm/output/.
-"""
+"""Analysis plots for HMM regime model. Requires matplotlib."""
 
 import logging
 from pathlib import Path
@@ -13,8 +10,9 @@ logger = logging.getLogger(__name__)
 
 
 def plot_regime_timeline(predictions: pd.DataFrame, output_dir: Path) -> None:
-    """Plot state probabilities over time as a stacked area chart."""
     try:
+        import matplotlib
+        matplotlib.use("Agg")
         import matplotlib.pyplot as plt
     except ImportError:
         logger.warning("matplotlib not installed — skipping plots")
@@ -31,34 +29,35 @@ def plot_regime_timeline(predictions: pd.DataFrame, output_dir: Path) -> None:
     fig.tight_layout()
     fig.savefig(output_dir / "regime_timeline.png", dpi=150)
     plt.close(fig)
-    logger.info(f"Saved regime_timeline.png")
+    logger.info("Saved regime_timeline.png")
 
 
 def plot_state_returns(predictions: pd.DataFrame, spy_prices: pd.Series, output_dir: Path) -> None:
-    """Plot forward return distributions per state."""
     try:
+        import matplotlib
+        matplotlib.use("Agg")
         import matplotlib.pyplot as plt
     except ImportError:
         return
 
     pred = predictions.set_index("trade_date")
-    fwd_1m = spy_prices.pct_change(21).shift(-21)
-    pred["spy_fwd_1m"] = fwd_1m.reindex(pred.index)
+    fwd = spy_prices.pct_change(21).shift(-21)
+    pred["r"] = fwd.reindex(pred.index)
 
     states = sorted(pred["most_likely_state"].unique())
     fig, axes = plt.subplots(1, len(states), figsize=(4 * len(states), 4), sharey=True)
     if len(states) == 1:
         axes = [axes]
 
-    for ax, state in zip(axes, states):
-        rets = pred.loc[pred["most_likely_state"] == state, "spy_fwd_1m"].dropna()
-        ax.hist(rets, bins=30, alpha=0.7, color=f"C{state}")
-        ax.axvline(rets.mean(), color="red", linestyle="--")
-        ax.set_title(f"State {state} (n={len(rets)}, μ={rets.mean():.3f})")
+    for ax, s in zip(axes, states):
+        r = pred.loc[pred["most_likely_state"] == s, "r"].dropna()
+        ax.hist(r, bins=30, alpha=0.7, color=f"C{s}")
+        ax.axvline(r.mean(), color="red", linestyle="--")
+        ax.set_title(f"State {s} (n={len(r)}, μ={r.mean():.3f})")
         ax.set_xlabel("1m fwd return")
 
     fig.suptitle("Forward Return Distributions by HMM State")
     fig.tight_layout()
     fig.savefig(output_dir / "state_returns.png", dpi=150)
     plt.close(fig)
-    logger.info(f"Saved state_returns.png")
+    logger.info("Saved state_returns.png")

@@ -1,0 +1,188 @@
+INFO | __main__ | ============================================================
+INFO | __main__ | STEP 1: Building features (8 inputs)
+INFO | __main__ | ============================================================
+INFO | hmm.features | Feature coverage:
+INFO | hmm.features |   nfci_z              :   99.3% (from 2005-03-22 00:00:00)
+INFO | hmm.features |   wti_z               :   99.4% (from 2005-03-17 00:00:00)
+INFO | hmm.features |   ust_10y3m_z         :   99.4% (from 2005-03-17 00:00:00)
+INFO | hmm.features |   mort_30y_z          :   99.3% (from 2005-03-21 00:00:00)
+INFO | hmm.features |   fed_bs_z            :   99.4% (from 2005-03-19 00:00:00)
+INFO | hmm.features |   spy_rtn_21d         :  100.0% (from 2005-01-28 00:00:00)
+INFO | hmm.features |   vvix_z              :   89.9% (from 2007-03-17 00:00:00)
+INFO | hmm.features |   skew_z              :   99.4% (from 2005-03-17 00:00:00)
+INFO | __main__ | Shape: (6682, 8), range: 2005-01-28 to 2026-03-27
+INFO | __main__ | ============================================================
+INFO | __main__ | STEP 2: Fitting 4-state HMM (diag cov, rolling)
+INFO | __main__ | ============================================================
+INFO | hmm.model | Fitting HMM: 4 states, 8 features, cov=diag, window=756d, refit=21d
+INFO | hmm.model | Clean data: 6010 rows [2007-03-17 to 2026-03-27]
+WARNING | hmmlearn.base | Model is not converging.  Current: -4537.390461929922 is not greater than -4537.388906456004. Delta is -0.0015554739175058785
+WARNING | hmmlearn.base | Model is not converging.  Current: -4726.773923271721 is not greater than -4726.772567875633. Delta is -0.0013553960880017257
+WARNING | hmmlearn.base | Model is not converging.  Current: -5822.305252571823 is not greater than -5822.304655347405. Delta is -0.0005972244180156849
+WARNING | hmmlearn.base | Model is not converging.  Current: -4421.6117015040445 is not greater than -4421.531079096556. Delta is -0.0806224074885904
+WARNING | hmmlearn.base | Model is not converging.  Current: -4059.661766042764 is not greater than -4059.4823839500664. Delta is -0.17938209269777872
+WARNING | hmmlearn.base | Model is not converging.  Current: -4365.00339460819 is not greater than -4364.795347291604. Delta is -0.20804731658608944
+WARNING | hmmlearn.base | Model is not converging.  Current: -4372.043528154957 is not greater than -4372.043523352651. Delta is -4.8023057388491e-06
+WARNING | hmmlearn.base | Model is not converging.  Current: -5401.27795426454 is not greater than -5401.277934490845. Delta is -1.9773695385083556e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4191.433027496137 is not greater than -4191.427986772319. Delta is -0.005040723817728576
+WARNING | hmmlearn.base | Model is not converging.  Current: -4286.017976980428 is not greater than -4286.017973852877. Delta is -3.1275512810680084e-06
+WARNING | hmmlearn.base | Model is not converging.  Current: -4138.1171057730435 is not greater than -4138.117093416962. Delta is -1.2356081242614891e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4284.425831914041 is not greater than -4284.425743449154. Delta is -8.846488708513789e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4400.02547969031 is not greater than -4400.025453671375. Delta is -2.6018935386673547e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4682.027264869719 is not greater than -4682.027248816211. Delta is -1.605350826139329e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4857.379887398727 is not greater than -4857.375444670602. Delta is -0.00444272812546842
+WARNING | hmmlearn.base | Model is not converging.  Current: -4732.36210221823 is not greater than -4732.362061372072. Delta is -4.084615738975117e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4918.1946202269455 is not greater than -4918.194594037114. Delta is -2.6189831260126084e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4996.442025887234 is not greater than -4996.439774240268. Delta is -0.0022516469662150485
+WARNING | hmmlearn.base | Model is not converging.  Current: -4604.938117547178 is not greater than -4604.938091918112. Delta is -2.5629065930843353e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4372.786118310344 is not greater than -4372.78611685189. Delta is -1.4584538803319447e-06
+WARNING | hmmlearn.base | Model is not converging.  Current: -4297.1334933346425 is not greater than -4297.133477623847. Delta is -1.571079519635532e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4540.291419053685 is not greater than -4540.291405711728. Delta is -1.3341957128432114e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -5013.25501936667 is not greater than -5013.254922443535. Delta is -9.692313506093342e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4548.938460276254 is not greater than -4548.938103575186. Delta is -0.0003567010680853855
+WARNING | hmmlearn.base | Model is not converging.  Current: -4620.9150035660305 is not greater than -4620.915000201157. Delta is -3.3648730095592327e-06
+WARNING | hmmlearn.base | Model is not converging.  Current: -4114.140762590935 is not greater than -4114.140644796058. Delta is -0.00011779487704188796
+WARNING | hmmlearn.base | Model is not converging.  Current: -4214.578424175463 is not greater than -4214.577714805602. Delta is -0.0007093698604876408
+WARNING | hmmlearn.base | Model is not converging.  Current: -3790.6673957959715 is not greater than -3790.665964140906. Delta is -0.0014316550655166793
+WARNING | hmmlearn.base | Model is not converging.  Current: -3655.386855820939 is not greater than -3655.386782157503. Delta is -7.366343606918235e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -3739.7346146119053 is not greater than -3739.7341883401905. Delta is -0.0004262717147867079
+WARNING | hmmlearn.base | Model is not converging.  Current: -3919.1722848398263 is not greater than -3918.047493629732. Delta is -1.1247912100943722
+WARNING | hmmlearn.base | Model is not converging.  Current: -4352.113000354804 is not greater than -4352.112978477542. Delta is -2.1877262042835355e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -3162.310541500269 is not greater than -3162.310364154947. Delta is -0.00017734532229951583
+WARNING | hmmlearn.base | Model is not converging.  Current: -3488.997039795117 is not greater than -3488.9970377616955. Delta is -2.0334214241302107e-06
+WARNING | hmmlearn.base | Model is not converging.  Current: -3590.727865698878 is not greater than -3590.727839605425. Delta is -2.609345301607391e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -3304.002177672015 is not greater than -3304.002170364887. Delta is -7.307127816602588e-06
+WARNING | hmmlearn.base | Model is not converging.  Current: -3005.3513644736736 is not greater than -3005.3512980362793. Delta is -6.643739425271633e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -3992.4339986459 is not greater than -3992.433944772578. Delta is -5.387332203099504e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4413.153282578765 is not greater than -4413.15229136965. Delta is -0.0009912091154546943
+WARNING | hmmlearn.base | Model is not converging.  Current: -4422.993524327395 is not greater than -4422.993515578921. Delta is -8.748474101594184e-06
+WARNING | hmmlearn.base | Model is not converging.  Current: -4492.589442126609 is not greater than -4492.589418537856. Delta is -2.358875372010516e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4623.936850509761 is not greater than -4623.936128749679. Delta is -0.0007217600823423709
+WARNING | hmmlearn.base | Model is not converging.  Current: -5217.513138255496 is not greater than -5217.513094992107. Delta is -4.3263389670755714e-05
+INFO | hmm.model | Generated 5506 predictions, avg confidence: 1.000
+INFO | __main__ | Predictions: 5506 dates
+INFO | __main__ | ============================================================
+INFO | __main__ | STEP 3: Labeling states (relative ranking, excess returns)
+INFO | __main__ | ============================================================
+INFO | hmm.labeler | Unconditional mean 1m return: 0.0096 (0.96%)
+WARNING | hmm.labeler | Confidence median=1.000 > 0.95 — probability vectors lack gradation
+INFO | hmm.labeler | Direction ranking (by avg 1m return):
+INFO | hmm.labeler |   State 3: avg=-0.0017, excess=-0.0114 → bearish
+INFO | hmm.labeler |   State 2: avg=0.0079, excess=-0.0018 → neutral
+INFO | hmm.labeler |   State 0: avg=0.0122, excess=+0.0026 → neutral
+INFO | hmm.labeler |   State 1: avg=0.0134, excess=+0.0038 → bullish
+INFO | hmm.labeler | State 0: ENTRY/LATE INVERSION — entry=neutral(0.010), late=bullish(0.013)
+INFO | hmm.labeler | State 1: ENTRY/LATE INVERSION — entry=neutral(0.011), late=bullish(0.015)
+INFO | hmm.labeler | State 2: ENTRY/LATE INVERSION — entry=neutral(0.011), late=bearish(0.007)
+INFO | hmm.labeler | State 3: ENTRY/LATE INVERSION — entry=bullish(0.017), late=bearish(-0.008)
+INFO | __main__ | ============================================================
+INFO | __main__ | STEP 4: Walk-forward validation
+INFO | __main__ | ============================================================
+WARNING | hmmlearn.base | Model is not converging.  Current: -5822.305252571823 is not greater than -5822.304655347405. Delta is -0.0005972244180156849
+WARNING | hmmlearn.base | Model is not converging.  Current: -4059.661766042764 is not greater than -4059.4823839500664. Delta is -0.17938209269777872
+WARNING | hmmlearn.base | Model is not converging.  Current: -4365.00339460819 is not greater than -4364.795347291604. Delta is -0.20804731658608944
+WARNING | hmmlearn.base | Model is not converging.  Current: -4286.017976980428 is not greater than -4286.017973852877. Delta is -3.1275512810680084e-06
+WARNING | hmmlearn.base | Model is not converging.  Current: -4400.02547969031 is not greater than -4400.025453671375. Delta is -2.6018935386673547e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4732.36210221823 is not greater than -4732.362061372072. Delta is -4.084615738975117e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4918.1946202269455 is not greater than -4918.194594037114. Delta is -2.6189831260126084e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4604.938117547178 is not greater than -4604.938091918112. Delta is -2.5629065930843353e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4540.291419053685 is not greater than -4540.291405711728. Delta is -1.3341957128432114e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4620.9150035660305 is not greater than -4620.915000201157. Delta is -3.3648730095592327e-06
+WARNING | hmmlearn.base | Model is not converging.  Current: -4214.578424175463 is not greater than -4214.577714805602. Delta is -0.0007093698604876408
+WARNING | hmmlearn.base | Model is not converging.  Current: -3919.1722848398263 is not greater than -3918.047493629732. Delta is -1.1247912100943722
+WARNING | hmmlearn.base | Model is not converging.  Current: -4413.153282578765 is not greater than -4413.15229136965. Delta is -0.0009912091154546943
+WARNING | hmmlearn.base | Model is not converging.  Current: -4492.589442126609 is not greater than -4492.589418537856. Delta is -2.358875372010516e-05
+INFO | __main__ | ============================================================
+INFO | __main__ | STEP 5: Comparing to rules-based classifier
+INFO | __main__ | ============================================================
+
+===========================================================================
+  STATE PROFILES (4 states, sorted by return)
+  Unconditional mean 1m return: 0.96%
+  Confidence: median=1.000 p25=1.000 p10=1.000
+===========================================================================
+
+  State 3: EXHAUSTION_TOP [bearish]
+    Time:     10.1% of days
+    Duration: avg=22d  med=21d  model-implied=68d  self-trans=0.985
+    Return:   1m=-0.17%  excess=-1.14%  std=6.21%  3m=+2.25%
+    Dir acc:  50.6% (on excess returns)
+    Entry:    bullish (+0.017)  Late: bearish (-0.008)
+    Strategy: take_profit_reduce_risk
+    Features: fed_bs_z=+0.76  mort_30y_z=-0.08  nfci_z=+0.13  skew_z=+0.01  spy_rtn_21d=+0.00  ust_10y3m_z=-0.15  vvix_z=+0.13  wti_z=+0.08
+    Period:   2015-04-24 to 2015-07-06 (63d)
+    Period:   2020-10-09 to 2020-11-25 (42d)
+    Period:   2021-08-19 to 2021-10-06 (42d)
+
+  State 2: TRANSITION [neutral]
+    Time:     34.9% of days
+    Duration: avg=31d  med=21d  model-implied=161d  self-trans=0.994
+    Return:   1m=+0.79%  excess=-0.18%  std=3.67%  3m=+2.33%
+    Dir acc:  76.9% (on excess returns)
+    Entry:    neutral (+0.011)  Late: bearish (+0.007)
+    Strategy: take_profit_reduce_risk
+    Features: fed_bs_z=+0.41  mort_30y_z=-0.16  nfci_z=-0.11  skew_z=+0.32  spy_rtn_21d=+0.01  ust_10y3m_z=-0.38  vvix_z=+0.13  wti_z=-0.11
+    Period:   2010-03-10 to 2010-08-02 (126d)
+    Period:   2017-11-29 to 2018-03-06 (84d)
+    Period:   2022-10-06 to 2023-01-12 (84d)
+
+  State 0: TRANSITION [neutral]
+    Time:     24.8% of days
+    Duration: avg=31d  med=21d  model-implied=49d  self-trans=0.979
+    Return:   1m=+1.22%  excess=+0.26%  std=3.66%  3m=+2.72%
+    Dir acc:  71.4% (on excess returns)
+    Entry:    neutral (+0.010)  Late: bullish (+0.013)
+    Strategy: take_profit_reduce_risk
+    Features: fed_bs_z=+0.43  mort_30y_z=-0.15  nfci_z=-0.21  skew_z=+0.24  spy_rtn_21d=+0.01  ust_10y3m_z=-0.05  vvix_z=-0.17  wti_z=+0.09
+    Period:   2009-10-17 to 2010-01-21 (84d)
+    Period:   2009-03-12 to 2009-05-23 (63d)
+    Period:   2012-06-15 to 2012-08-25 (63d)
+
+  State 1: STRONG_BULL [bullish]
+    Time:     30.2% of days
+    Duration: avg=33d  med=21d  model-implied=108d  self-trans=0.991
+    Return:   1m=+1.34%  excess=+0.38%  std=3.93%  3m=+4.16%
+    Dir acc:  59.6% (on excess returns)
+    Entry:    neutral (+0.011)  Late: bullish (+0.015)
+    Strategy: take_profit_reduce_risk
+    Features: fed_bs_z=+0.43  mort_30y_z=-0.27  nfci_z=-0.16  skew_z=+0.28  spy_rtn_21d=+0.01  ust_10y3m_z=-0.14  vvix_z=+0.11  wti_z=-0.12
+    Period:   2014-11-30 to 2015-03-05 (84d)
+    Period:   2021-03-26 to 2021-07-01 (84d)
+    Period:   2013-04-27 to 2013-07-08 (63d)
+
+  TRANSITION MATRIX (last fit):
+             S0    S1    S2    S3
+      S0  0.979  0.007  0.014  0.000
+      S1  0.009  0.991  0.000  0.000
+      S2  0.003  0.000  0.994  0.003
+      S3  0.015  0.000  0.000  0.985
+
+  VALIDATION CHECKS:
+    Bearish states: 1 PASS
+    States with negative excess return: 2 PASS
+    States with <5% time: 0 PASS
+    States with avg dur <15d: 0 PASS
+
+===========================================================================
+  WALK-FORWARD VALIDATION (83 folds)
+===========================================================================
+  Avg BIC: 6,941,236  AIC: 6,940,871
+  Avg test LL: -1669.57 (std 1711.17)
+  Avg duration: 26.2d (std 16.0)
+  Avg states used: 3.0/4
+  Avg return separation: 0.103
+
+===========================================================================
+  HMM vs RULES-BASED COMPARISON
+===========================================================================
+  Comparable dates: 1653
+  Agreement:        58.7%
+  HMM accuracy:     61.5%
+  Rules accuracy:   59.3%
+  HMM advantage:    +2.2%
+  Disagreements:    682 — HMM right: 359, Rules right: 323
+
+===========================================================================
+  COMPLETE — output in hmm/output/
+===========================================================================
+

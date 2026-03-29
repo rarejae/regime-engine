@@ -1,143 +1,154 @@
-"""Main entry point for HMM development — fit, label, validate, compare, report."""
+"""Main entry point for HMM v3.1 development."""
 
 import logging
+import pickle
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+import numpy as np
 import pandas as pd
 
 from hmm.config import HMMConfig
 from hmm.features import build_hmm_features, get_spy_prices
 from hmm.model import fit_and_predict_rolling
-from hmm.labeler import label_states
+from hmm.labeler import label_states, LabelingResult
 from hmm.validation import walk_forward_validate
 from hmm.analysis import compare_to_rules_based, generate_regime_timeline
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(name)s | %(message)s")
 logger = logging.getLogger(__name__)
 
+CV_PATHS = [
+    Path("data/macro/condition_vectors.pickle"),
+    Path("condition_vectors.pickle"),
+]
+
 
 def main():
     config = HMMConfig()
     config.output_dir.mkdir(parents=True, exist_ok=True)
 
-    # === STEP 1: Build features ===
+    # === STEP 1 ===
     logger.info("=" * 60)
-    logger.info("STEP 1: Building HMM features")
+    logger.info(f"STEP 1: Building features ({len(config.hmm_features)} inputs)")
     logger.info("=" * 60)
-
     features = build_hmm_features(config)
-    logger.info(f"Features shape: {features.shape}")
-    logger.info(f"Date range: {features.index.min().date()} to {features.index.max().date()}")
+    logger.info(f"Shape: {features.shape}, range: {features.index.min().date()} to {features.index.max().date()}")
 
-    raw = pd.read_parquet(config.raw_indicators_path)
-    raw.index = pd.to_datetime(raw.index)
-    raw = raw.sort_index()
-    spy_prices = get_spy_prices(raw, config)
+    spy_prices = get_spy_prices(config)
+    if spy_prices is None:
+        logger.error("Cannot proceed without SPY prices"); sys.exit(1)
 
-    # === STEP 2: Fit HMM (rolling window) ===
+    # === STEP 2 ===
     logger.info("=" * 60)
-    logger.info("STEP 2: Fitting HMM with rolling window")
+    logger.info(f"STEP 2: Fitting {config.n_states}-state HMM (diag cov, rolling)")
     logger.info("=" * 60)
-
-    predictions = fit_and_predict_rolling(features, config)
+    predictions, last_model = fit_and_predict_rolling(features, config)
     logger.info(f"Predictions: {len(predictions)} dates")
     predictions.to_parquet(config.output_dir / "predictions.parquet", index=False)
 
-    # === STEP 3: Label states ===
+    # === STEP 3 ===
     logger.info("=" * 60)
-    logger.info("STEP 3: Labeling states")
+    logger.info("STEP 3: Labeling states (relative ranking, excess returns)")
     logger.info("=" * 60)
+    result = label_states(predictions, features, spy_prices, config, last_model)
+    profiles = result.profiles
 
-    profiles = label_states(predictions, features, spy_prices, config)
+    # Print profiles
+    print(f"\n{'='*75}")
+    print(f"  STATE PROFILES ({config.n_states} states, sorted by return)")
+    print(f"  Unconditional mean 1m return: {result.unconditional_mean_1m:.2%}")
+    print(f"  Confidence: median={result.confidence_median:.3f} p25={result.confidence_p25:.3f} p10={result.confidence_p10:.3f}")
+    print(f"{'='*75}")
 
-    print(f"\n{'='*70}")
-    print(f"  STATE PROFILES ({config.n_states} states)")
-    print(f"{'='*70}")
     for p in profiles:
-        print(f"\n  State {p.state_id}: {p.label.upper()}")
-        print(f"    Time:      {p.pct_of_time:.1%} of days | Avg run: {p.avg_duration_days:.0f} days")
-        print(f"    Direction: {p.direction} | Dir accuracy: {p.direction_accuracy_1m:.1%}")
-        print(f"    SPY fwd:   1m {p.avg_spy_return_1m:+.2%} (std {p.return_std_1m:.2%}) | 3m {p.avg_spy_return_3m:+.2%}")
-        print(f"    Strategy:  {p.recommended_strategy}")
-        for feat, val in sorted(p.feature_means.items()):
-            print(f"    {feat}: {val:+.3f}")
+        print(f"\n  State {p.state_id}: {p.label.upper()} [{p.direction}]")
+        print(f"    Time:     {p.pct_of_time:.1%} of days")
+        print(f"    Duration: avg={p.avg_duration_days:.0f}d  med={p.median_duration_days:.0f}d  "
+              f"model-implied={p.model_implied_duration:.0f}d  self-trans={p.self_transition_prob:.3f}")
+        if p.self_transition_prob > 0 and p.self_transition_prob < 0.90:
+            print(f"    *** UNSTABLE: self-transition < 0.90 ***")
+        print(f"    Return:   1m={p.avg_spy_return_1m:+.2%}  excess={p.excess_return_1m:+.2%}  "
+              f"std={p.return_std_1m:.2%}  3m={p.avg_spy_return_3m:+.2%}")
+        print(f"    Dir acc:  {p.direction_accuracy_1m:.1%} (on excess returns)")
+        print(f"    Entry:    {p.entry_direction} ({p.avg_return_at_entry:+.3f})  "
+              f"Late: {p.late_direction} ({p.avg_return_late:+.3f})")
+        print(f"    Strategy: {p.recommended_strategy}")
+        fstr = "  ".join(f"{k}={v:+.2f}" for k, v in sorted(p.feature_means.items()))
+        print(f"    Features: {fstr}")
         for ex in p.example_periods[:3]:
-            print(f"    Period: {ex}")
+            print(f"    Period:   {ex}")
 
-    # === STEP 4: Walk-forward validation ===
+    # Transition matrix
+    if result.transition_matrix is not None:
+        print(f"\n  TRANSITION MATRIX (last fit):")
+        tm = result.transition_matrix
+        header = "         " + "  ".join(f"  S{i}" for i in range(tm.shape[1]))
+        print(f"  {header}")
+        for i in range(tm.shape[0]):
+            row = f"    S{i}  " + "  ".join(f"{tm[i,j]:.3f}" for j in range(tm.shape[1]))
+            print(f"  {row}")
+
+    # Validation checks
+    print(f"\n  VALIDATION CHECKS:")
+    bearish = [p for p in profiles if p.direction == "bearish"]
+    print(f"    Bearish states: {len(bearish)} {'PASS' if bearish else 'FAIL'}")
+    neg_excess = [p for p in profiles if p.excess_return_1m < 0]
+    print(f"    States with negative excess return: {len(neg_excess)} {'PASS' if neg_excess else 'FAIL'}")
+    small = [p for p in profiles if p.pct_of_time < 0.05]
+    print(f"    States with <5% time: {len(small)} {'PASS' if not small else 'FAIL — ' + str([p.state_id for p in small])}")
+    short = [p for p in profiles if p.avg_duration_days < 15]
+    print(f"    States with avg dur <15d: {len(short)} {'PASS' if not short else 'WARN — ' + str([(p.state_id, f'{p.avg_duration_days:.0f}d') for p in short])}")
+
+    # === STEP 4 ===
     logger.info("=" * 60)
     logger.info("STEP 4: Walk-forward validation")
     logger.info("=" * 60)
+    val = walk_forward_validate(features, spy_prices, config)
 
-    val_report = walk_forward_validate(features, spy_prices, config)
+    print(f"\n{'='*75}")
+    print(f"  WALK-FORWARD VALIDATION ({val.n_folds} folds)")
+    print(f"{'='*75}")
+    print(f"  Avg BIC: {val.avg_bic:,.0f}  AIC: {val.avg_aic:,.0f}")
+    print(f"  Avg test LL: {val.avg_test_log_likelihood:.2f} (std {val.test_ll_std:.2f})")
+    print(f"  Avg duration: {val.avg_state_duration:.1f}d (std {val.duration_std:.1f})")
+    print(f"  Avg states used: {val.avg_states_used:.1f}/{config.n_states}")
+    print(f"  Avg return separation: {val.avg_return_separation:.3f}")
 
-    print(f"\n{'='*70}")
-    print(f"  WALK-FORWARD VALIDATION ({val_report.n_folds} folds)")
-    print(f"{'='*70}")
-    print(f"  Avg BIC:              {val_report.avg_bic:,.0f}")
-    print(f"  Avg AIC:              {val_report.avg_aic:,.0f}")
-    print(f"  Avg test LL:          {val_report.avg_test_log_likelihood:.3f}")
-    print(f"  Avg state duration:   {val_report.avg_state_duration:.1f} days")
-    print(f"  Avg states used/fold: {val_report.avg_states_used:.1f}")
-    print(f"  Test LL std:          {val_report.direction_accuracy_std:.3f}")
-
-    # === STEP 5: Compare to rules-based ===
+    # === STEP 5 ===
     logger.info("=" * 60)
     logger.info("STEP 5: Comparing to rules-based classifier")
     logger.info("=" * 60)
+    cv_path = next((p for p in CV_PATHS if p.exists()), None)
 
-    try:
-        from backtest.macro_backfill import load_cached_condition_vectors
-        rules_cvs = load_cached_condition_vectors()
+    if cv_path:
+        with open(cv_path, "rb") as f:
+            rules_cvs = pickle.load(f)
+        comp = compare_to_rules_based(predictions, rules_cvs, spy_prices, profiles)
 
-        if rules_cvs:
-            comparison = compare_to_rules_based(predictions, rules_cvs, spy_prices, profiles)
+        print(f"\n{'='*75}")
+        print(f"  HMM vs RULES-BASED COMPARISON")
+        print(f"{'='*75}")
+        print(f"  Comparable dates: {comp['total_comparable']}")
+        print(f"  Agreement:        {comp['agreement_rate']:.1%}")
+        print(f"  HMM accuracy:     {comp['hmm_accuracy_1m']:.1%}")
+        print(f"  Rules accuracy:   {comp['rules_accuracy_1m']:.1%}")
+        print(f"  HMM advantage:    {comp['hmm_advantage']:+.1%}")
+        d = comp["disagreements"]
+        if len(d) > 0:
+            print(f"  Disagreements:    {len(d)} — HMM right: {d['hmm_right'].sum()}, Rules right: {d['rules_right'].sum()}")
+    else:
+        logger.warning("condition_vectors.pickle not found — skipping")
 
-            print(f"\n{'='*70}")
-            print(f"  HMM vs RULES-BASED COMPARISON")
-            print(f"{'='*70}")
-            print(f"  Comparable dates:   {comparison['total_comparable']}")
-            print(f"  Agreement rate:     {comparison['agreement_rate']:.1%}")
-            print(f"  HMM accuracy (1m):  {comparison['hmm_accuracy_1m']:.1%}")
-            print(f"  Rules accuracy (1m):{comparison['rules_accuracy_1m']:.1%}")
-            print(f"  HMM advantage:      {comparison['hmm_advantage']:+.1%}")
+    # === STEP 6 ===
+    tl = generate_regime_timeline(predictions, profiles, spy_prices)
+    tl.to_csv(config.output_dir / "regime_timeline.csv", index=False)
 
-            disag = comparison["disagreements"]
-            if len(disag) > 0:
-                hmm_wins = disag["hmm_right"].sum()
-                rules_wins = disag["rules_right"].sum()
-                print(f"  Disagreements:      {len(disag)}")
-                print(f"    HMM was right:    {hmm_wins}")
-                print(f"    Rules was right:  {rules_wins}")
-    except Exception as e:
-        logger.warning(f"Could not compare to rules-based: {e}")
-
-    # === STEP 6: Regime timeline ===
-    logger.info("=" * 60)
-    logger.info("STEP 6: Regime timeline")
-    logger.info("=" * 60)
-
-    timeline = generate_regime_timeline(predictions, profiles, spy_prices)
-    timeline.to_csv(config.output_dir / "regime_timeline.csv", index=False)
-
-    print(f"\n{'='*70}")
-    print(f"  MONTHLY REGIME TIMELINE")
-    print(f"{'='*70}")
-    print(f"{'Date':>10} {'State':>6} {'Label':>18} {'Conf':>6} {'Dir':>8} {'SPY_1m':>8}")
-    print("-" * 60)
-    for _, row in timeline.iterrows():
-        r1 = f"{row['spy_1m_fwd']:+.1%}" if pd.notna(row["spy_1m_fwd"]) else "N/A"
-        print(f"{row['date'].strftime('%Y-%m'):>10} {row['state']:>6} {row['label']:>18} "
-              f"{row['confidence']:>6.2f} {row['direction']:>8} {r1:>8}")
-
-    print(f"\n{'='*70}")
-    print(f"  HMM DEVELOPMENT COMPLETE")
-    print(f"{'='*70}")
-    print(f"  Output saved to {config.output_dir}/")
-    print()
+    print(f"\n{'='*75}")
+    print(f"  COMPLETE — output in {config.output_dir}/")
+    print(f"{'='*75}\n")
 
 
 if __name__ == "__main__":

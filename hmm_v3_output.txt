@@ -1,0 +1,97 @@
+INFO | __main__ | ============================================================
+INFO | __main__ | STEP 1: Building HMM v2 features (5 orthogonal inputs)
+INFO | __main__ | ============================================================
+INFO | hmm.features | Feature coverage:
+INFO | hmm.features |   nfci_z              :   99.3% (from 2005-03-22 00:00:00)
+INFO | hmm.features |   wti_z               :   99.4% (from 2005-03-17 00:00:00)
+INFO | hmm.features |   ust_10y3m_z         :   99.4% (from 2005-03-17 00:00:00)
+INFO | hmm.features |   mort_30y_z          :   99.3% (from 2005-03-21 00:00:00)
+INFO | hmm.features |   fed_bs_z            :   99.4% (from 2005-03-19 00:00:00)
+INFO | hmm.features |   spy_rtn_21d         :  100.0% (from 2005-01-28 00:00:00)
+INFO | hmm.features |   vvix_z              :   89.9% (from 2007-03-17 00:00:00)
+INFO | hmm.features |   skew_z              :   99.4% (from 2005-03-17 00:00:00)
+INFO | __main__ | Shape: (6682, 8), range: 2005-01-28 to 2026-03-27
+INFO | __main__ | ============================================================
+INFO | __main__ | STEP 2: Fitting 3-state HMM (diag cov, rolling window)
+INFO | __main__ | ============================================================
+INFO | hmm.model | Fitting HMM: 3 states, 8 features, cov=diag, window=756d, refit=21d
+INFO | hmm.model | Clean data: 6010 rows [2007-03-17 to 2026-03-27]
+WARNING | hmmlearn.base | Model is not converging.  Current: -5438.662260388869 is not greater than -5438.662259068342. Delta is -1.3205271898186766e-06
+WARNING | hmmlearn.base | Model is not converging.  Current: -5631.206782786676 is not greater than -5631.206708381401. Delta is -7.440527497237781e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -5611.2044939290245 is not greater than -5611.204478806479. Delta is -1.5122545846679714e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -5701.141036031916 is not greater than -5701.141014085891. Delta is -2.19460252992576e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -6299.90753720334 is not greater than -6299.9075256521455. Delta is -1.1551194802450482e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -5826.195688094221 is not greater than -5826.195682741917. Delta is -5.352303560357541e-06
+WARNING | hmmlearn.base | Model is not converging.  Current: -5325.652894263321 is not greater than -5325.652883025083. Delta is -1.1238238585065119e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4908.634114954442 is not greater than -4908.634071144147. Delta is -4.381029521027813e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -4318.499514427855 is not greater than -4318.499410388966. Delta is -0.00010403888882137835
+WARNING | hmmlearn.base | Model is not converging.  Current: -4224.487031083597 is not greater than -4224.487014955446. Delta is -1.6128150491567794e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -3973.9063198322397 is not greater than -3973.9063180945127. Delta is -1.7377269614371471e-06
+WARNING | hmmlearn.base | Model is not converging.  Current: -4718.535078147934 is not greater than -4718.535066015684. Delta is -1.2132250049035065e-05
+WARNING | hmmlearn.base | Model is not converging.  Current: -5294.592049110646 is not greater than -5294.592040613426. Delta is -8.4972198237665e-06
+INFO | hmm.model | Generated 5506 predictions, avg confidence: 0.992
+INFO | __main__ | Predictions: 5506 dates
+INFO | __main__ | ============================================================
+INFO | __main__ | STEP 3: Labeling states (entry vs late analysis)
+INFO | __main__ | ============================================================
+INFO | __main__ | 
+State 2: steady_growth
+INFO | __main__ |   Time: 50.4% | Dur: avg=50d med=42d
+INFO | __main__ |   Dir: bullish | Acc: 66.6%
+INFO | __main__ |   SPY 1m: +0.80% (std 4.44%) | 3m: +2.78%
+INFO | __main__ |   Entry: bullish (+0.009) | Late: bullish (+0.008)
+INFO | __main__ |   Strategy: iron_condor
+INFO | __main__ |   Features: {'nfci_z': -0.08152565164951023, 'wti_z': -0.12328233986354639, 'ust_10y3m_z': -0.23181977255973332, 'mort_30y_z': -0.1934015636295954, 'fed_bs_z': 0.45086093356921714, 'spy_rtn_21d': 0.007551997861085253, 'vvix_z': 0.0751126551681234, 'skew_z': 0.2650488479607742}
+INFO | __main__ |   Period: 2017-03-31 to 2017-11-03 (189d)
+INFO | __main__ |   Period: 2013-06-15 to 2013-11-06 (126d)
+INFO | __main__ |   Period: 2014-08-26 to 2015-01-17 (126d)
+INFO | __main__ | 
+State 1: steady_growth
+INFO | __main__ |   Time: 27.4% | Dur: avg=30d med=21d
+INFO | __main__ |   Dir: bullish | Acc: 66.5%
+INFO | __main__ |   SPY 1m: +0.85% (std 3.62%) | 3m: +2.46%
+INFO | __main__ |   Entry: bullish (+0.012) | Late: bullish (+0.008)
+INFO | __main__ |   Strategy: iron_condor
+INFO | __main__ |   Features: {'nfci_z': -0.19463044061891388, 'wti_z': 0.011124075043278272, 'ust_10y3m_z': -0.17791485467305224, 'mort_30y_z': -0.21854584480465894, 'fed_bs_z': 0.4836604605822965, 'spy_rtn_21d': 0.009602362783726904, 'vvix_z': 0.07238358484960528, 'skew_z': 0.38558001797723873}
+INFO | __main__ |   Period: 2011-10-14 to 2012-02-14 (105d)
+INFO | __main__ |   Period: 2022-11-24 to 2023-03-27 (105d)
+INFO | __main__ |   Period: 2010-02-15 to 2010-05-21 (84d)
+INFO | __main__ | 
+State 0: steady_growth
+INFO | __main__ |   Time: 22.1% | Dur: avg=24d med=21d
+INFO | __main__ |   Dir: bullish | Acc: 71.2%
+INFO | __main__ |   SPY 1m: +1.48% (std 3.77%) | 3m: +4.00%
+INFO | __main__ |   Entry: bullish (+0.015) | Late: bullish (+0.014)
+INFO | __main__ |   Strategy: iron_condor
+INFO | __main__ |   Features: {'nfci_z': -0.13609849777764074, 'wti_z': 0.07010531041060239, 'ust_10y3m_z': -0.17232866448143958, 'mort_30y_z': -0.11255883137782675, 'fed_bs_z': 0.43307141926821036, 'spy_rtn_21d': 0.00831097393706099, 'vvix_z': -0.031362063830080125, 'skew_z': 0.08101943515515785}
+INFO | __main__ |   Period: 2021-08-19 to 2021-10-30 (63d)
+INFO | __main__ |   Period: 2009-06-17 to 2009-08-04 (42d)
+INFO | __main__ |   Period: 2013-04-27 to 2013-06-14 (42d)
+INFO | __main__ | ============================================================
+INFO | __main__ | STEP 4: Walk-forward validation
+INFO | __main__ | ============================================================
+WARNING | hmmlearn.base | Model is not converging.  Current: -4318.499514427855 is not greater than -4318.499410388966. Delta is -0.00010403888882137835
+WARNING | hmmlearn.base | Model is not converging.  Current: -3973.9063198322397 is not greater than -3973.9063180945127. Delta is -1.7377269614371471e-06
+INFO | __main__ | Folds: 83
+INFO | __main__ | Avg BIC: 8,974,938 | AIC: 8,974,679
+INFO | __main__ | Avg test LL: -1136.12 (std 627.58)
+INFO | __main__ | Avg duration: 22.2d (std 17.0)
+INFO | __main__ | Avg states used: 2.4/3
+INFO | __main__ | Avg return separation: 0.084
+INFO | __main__ | ============================================================
+INFO | __main__ | STEP 5: Comparing to rules-based classifier
+INFO | __main__ | ============================================================
+INFO | __main__ | Comparable: 4169 dates
+INFO | __main__ | Agreement: 77.2%
+INFO | __main__ | HMM acc (1m): 67.0%
+INFO | __main__ | Rules acc (1m): 59.3%
+INFO | __main__ | HMM advantage: +7.7%
+INFO | __main__ | Disagreements: 951 — HMM right: 636, Rules right: 315
+INFO | __main__ | ============================================================
+INFO | __main__ | STEP 6: Regime timeline
+INFO | __main__ | ============================================================
+INFO | __main__ | Saved 210 months
+INFO | __main__ | 
+============================================================
+INFO | __main__ | HMM V2 DEVELOPMENT COMPLETE
+INFO | __main__ | ============================================================

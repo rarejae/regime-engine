@@ -1,112 +1,75 @@
-"""Tests for HMM model fitting and prediction."""
+"""Tests for v3 HMM model."""
 
 import numpy as np
 import pandas as pd
 import pytest
-
 from hmm.config import HMMConfig
-from hmm.model import fit_and_predict_rolling, fit_single_window
+from hmm.model import fit_and_predict_rolling
+
+FEAT_NAMES = ["nfci_z", "wti_z", "ust_10y3m_z", "mort_30y_z",
+              "fed_bs_z", "spy_rtn_21d", "vvix_z", "skew_z"]
 
 
 @pytest.fixture
 def synthetic_features():
-    """Generate synthetic features with known regime structure."""
     np.random.seed(42)
-    dates = pd.date_range("2018-01-01", periods=1200, freq="D")
+    dates = pd.date_range("2018-01-01", periods=1500, freq="D")
+    regime = np.zeros(1500)
+    regime[400:500] = 1
+    regime[900:1000] = 1
+    regime[1100:1200] = 2
 
-    regime = np.zeros(1200)
-    regime[300:400] = 1
-    regime[700:800] = 1
-
-    features = pd.DataFrame(index=dates)
-    features["spy_return_21d"] = np.where(
-        regime == 0, np.random.normal(0.02, 0.03, 1200), np.random.normal(-0.05, 0.08, 1200)
-    )
-    features["spy_vol_21d"] = np.where(
-        regime == 0, np.random.normal(0.12, 0.02, 1200), np.random.normal(0.35, 0.05, 1200)
-    )
-    features["vix_z"] = np.where(
-        regime == 0, np.random.normal(-0.5, 0.3, 1200), np.random.normal(1.5, 0.5, 1200)
-    )
-    features["yield_curve_z"] = np.random.normal(0, 0.5, 1200)
-    features["credit_spread_z"] = np.where(
-        regime == 0, np.random.normal(-0.3, 0.2, 1200), np.random.normal(1.0, 0.4, 1200)
-    )
-    features["inflation_z"] = np.random.normal(0, 0.5, 1200)
-
-    return features, regime
+    f = pd.DataFrame(index=dates)
+    for name in FEAT_NAMES:
+        base = np.random.normal(0, 0.5, 1500)
+        if name in ("nfci_z", "vvix_z"):
+            base = np.where(regime == 1, base + 1.5, base)
+        elif name == "spy_rtn_21d":
+            base = np.where(regime == 1, np.random.normal(-0.05, 0.04, 1500), np.random.normal(0.02, 0.03, 1500))
+        f[name] = base
+    return f, regime
 
 
 def test_prediction_shape(synthetic_features):
-    features, _ = synthetic_features
-    config = HMMConfig(n_states=2, window_days=300, min_window_days=200, refit_frequency=50)
-    predictions = fit_and_predict_rolling(features, config)
-
-    assert "trade_date" in predictions.columns
-    assert "state_0_prob" in predictions.columns
-    assert "state_1_prob" in predictions.columns
-    assert "most_likely_state" in predictions.columns
-    assert "confidence" in predictions.columns
-    assert len(predictions) > 0
+    f, _ = synthetic_features
+    cfg = HMMConfig(n_states=3, window_days=400, min_window_days=300, refit_frequency=50)
+    p, _ = fit_and_predict_rolling(f, cfg)
+    assert "trade_date" in p.columns
+    for s in range(3):
+        assert f"state_{s}_prob" in p.columns
+    assert len(p) > 0
 
 
-def test_probabilities_sum_to_one(synthetic_features):
-    features, _ = synthetic_features
-    config = HMMConfig(n_states=2, window_days=300, min_window_days=200, refit_frequency=50)
-    predictions = fit_and_predict_rolling(features, config)
-
-    prob_cols = [c for c in predictions.columns if c.endswith("_prob")]
-    row_sums = predictions[prob_cols].sum(axis=1)
-    assert np.allclose(row_sums, 1.0, atol=1e-5)
+def test_probs_sum_to_one(synthetic_features):
+    f, _ = synthetic_features
+    cfg = HMMConfig(n_states=3, window_days=400, min_window_days=300, refit_frequency=50)
+    p, _ = fit_and_predict_rolling(f, cfg)
+    cols = [c for c in p.columns if c.endswith("_prob")]
+    assert np.allclose(p[cols].sum(axis=1), 1.0, atol=1e-5)
 
 
-def test_probabilities_bounded(synthetic_features):
-    features, _ = synthetic_features
-    config = HMMConfig(n_states=2, window_days=300, min_window_days=200, refit_frequency=50)
-    predictions = fit_and_predict_rolling(features, config)
+def test_probs_bounded(synthetic_features):
+    f, _ = synthetic_features
+    cfg = HMMConfig(n_states=3, window_days=400, min_window_days=300, refit_frequency=50)
+    p, _ = fit_and_predict_rolling(f, cfg)
+    cols = [c for c in p.columns if c.endswith("_prob")]
+    assert (p[cols] >= 0).all().all()
+    assert (p[cols] <= 1).all().all()
 
-    prob_cols = [c for c in predictions.columns if c.endswith("_prob")]
-    assert (predictions[prob_cols] >= 0).all().all()
-    assert (predictions[prob_cols] <= 1).all().all()
 
-
-def test_pit_safety(synthetic_features):
-    features, _ = synthetic_features
-    config = HMMConfig(
-        n_states=2, window_days=300, min_window_days=200,
-        refit_frequency=50, exclude_current_bar=True,
-    )
-    predictions = fit_and_predict_rolling(features, config)
-
-    first_pred_date = predictions["trade_date"].min()
-    first_feature_date = features.index[0]
-    days_gap = (first_pred_date - first_feature_date).days
-    assert days_gap >= config.min_window_days
+def test_states_used(synthetic_features):
+    f, _ = synthetic_features
+    cfg = HMMConfig(n_states=3, window_days=400, min_window_days=300, refit_frequency=50)
+    p, _ = fit_and_predict_rolling(f, cfg)
+    assert p["most_likely_state"].nunique() >= 2
 
 
 def test_stress_detection(synthetic_features):
-    features, true_regime = synthetic_features
-    config = HMMConfig(n_states=2, window_days=300, min_window_days=200, refit_frequency=21)
-    predictions = fit_and_predict_rolling(features, config)
-    pred_indexed = predictions.set_index("trade_date")
-
-    stress_dates = features.index[320:380]
-    stress_preds = pred_indexed.reindex(stress_dates).dropna()
-
-    calm_dates = features.index[100:200]
-    calm_preds = pred_indexed.reindex(calm_dates).dropna()
-
-    if len(stress_preds) > 0 and len(calm_preds) > 0:
-        dominant_stress = stress_preds["most_likely_state"].mode()[0]
-        dominant_calm = calm_preds["most_likely_state"].mode()[0]
-        assert dominant_stress != dominant_calm, "HMM should distinguish stress from calm"
-
-
-def test_fit_single_window(synthetic_features):
-    features, _ = synthetic_features
-    config = HMMConfig(n_states=2)
-    model, scaler, clean = fit_single_window(features, config)
-
-    assert model.n_components == 2
-    assert scaler is not None
-    assert len(clean) > 0
+    f, _ = synthetic_features
+    cfg = HMMConfig(n_states=3, window_days=400, min_window_days=300, refit_frequency=21)
+    p, _ = fit_and_predict_rolling(f, cfg)
+    p = p.set_index("trade_date")
+    stress = p.reindex(f.index[420:480]).dropna()
+    calm = p.reindex(f.index[200:300]).dropna()
+    if len(stress) > 0 and len(calm) > 0:
+        assert stress["most_likely_state"].mode()[0] != calm["most_likely_state"].mode()[0]

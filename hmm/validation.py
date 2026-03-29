@@ -1,12 +1,11 @@
 """Walk-forward validation for the HMM regime model.
 
-Tests regime detection quality on truly out-of-sample data using
-rolling window fits. Measures BIC/AIC, state stability,
-and return separation between states.
+Tests regime detection quality on truly out-of-sample data.
+Measures state separation, persistence, and information content.
 """
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
@@ -34,19 +33,22 @@ class ValidationFold:
     avg_state_duration_test: float
     n_transitions_test: int
     states_used_test: int
+    state_return_separation: float
 
 
 @dataclass
 class ValidationReport:
     n_states: int
     n_folds: int
-    folds: list[ValidationFold]
+    folds: list
     avg_bic: float
     avg_aic: float
     avg_test_log_likelihood: float
     avg_state_duration: float
-    direction_accuracy_std: float
     avg_states_used: float
+    avg_return_separation: float
+    test_ll_std: float
+    duration_std: float
 
 
 def walk_forward_validate(
@@ -54,128 +56,132 @@ def walk_forward_validate(
     spy_prices: pd.Series,
     config: HMMConfig,
 ) -> ValidationReport:
-    """Run walk-forward validation on the HMM."""
-    clean = features.dropna()
-    feature_cols = [c for c in clean.columns if c in config.hmm_features]
+    """Run walk-forward validation."""
+    clean = features[config.hmm_features].dropna()
+    fwd_1m = spy_prices.pct_change(21).shift(-21) if spy_prices is not None else None
 
     folds: list[ValidationFold] = []
     fold_id = 0
-    test_start_idx = config.min_train_days
+    idx = config.min_train_days
 
-    while test_start_idx + config.walk_forward_test_days <= len(clean):
-        test_end_idx = min(test_start_idx + config.walk_forward_test_days, len(clean))
-        train_end_idx = test_start_idx - 1
-        train_start_idx = max(0, train_end_idx - config.window_days + 1)
+    while idx + config.walk_forward_test_days <= len(clean):
+        te = min(idx + config.walk_forward_test_days, len(clean))
+        tr_end = idx - 1
+        tr_start = max(0, tr_end - config.window_days + 1)
 
-        train_data = clean.iloc[train_start_idx : train_end_idx + 1][feature_cols].values
-        test_data = clean.iloc[test_start_idx:test_end_idx][feature_cols].values
+        train = clean.iloc[tr_start:tr_end + 1].values
+        test = clean.iloc[idx:te].values
 
-        if len(train_data) < config.min_window_days // 2 or len(test_data) < 5:
-            test_start_idx += config.walk_forward_step_days
+        if len(train) < config.min_window_days // 2 or len(test) < 5:
+            idx += config.walk_forward_step_days
             continue
 
         scaler = StandardScaler()
-        train_scaled = scaler.fit_transform(train_data)
+        train_s = scaler.fit_transform(train)
 
         try:
             model = hmm.GaussianHMM(
                 n_components=config.n_states,
                 covariance_type=config.covariance_type,
-                n_iter=config.n_iter,
-                tol=config.tol,
+                n_iter=config.n_iter, tol=config.tol,
                 random_state=config.random_state,
             )
-            model.fit(train_scaled)
-        except Exception as e:
-            logger.warning(f"Fold {fold_id} train failed: {e}")
-            test_start_idx += config.walk_forward_step_days
+            model.fit(train_s)
+        except Exception:
+            idx += config.walk_forward_step_days
             continue
 
-        test_scaled = scaler.transform(test_data)
-
+        test_s = scaler.transform(test)
         try:
-            test_states = model.predict(test_scaled)
-        except Exception as e:
-            logger.warning(f"Fold {fold_id} predict failed: {e}")
-            test_start_idx += config.walk_forward_step_days
+            test_states = model.predict(test_s)
+        except Exception:
+            idx += config.walk_forward_step_days
             continue
 
-        train_ll = model.score(train_scaled)
-        test_ll = model.score(test_scaled)
+        train_ll = model.score(train_s)
+        test_ll = model.score(test_s)
+        n_p = _count_params(config.n_states, len(config.hmm_features), config.covariance_type)
+        bic = -2 * train_ll * len(train) + n_p * np.log(len(train))
+        aic = -2 * train_ll * len(train) + 2 * n_p
 
-        n_params = _count_params(config.n_states, len(feature_cols), config.covariance_type)
-        n_samples = len(train_data)
-        bic = -2 * train_ll * n_samples + n_params * np.log(n_samples)
-        aic = -2 * train_ll * n_samples + 2 * n_params
+        trans = int(np.sum(np.diff(test_states) != 0))
+        runs = _runs(test_states)
+        avg_d = float(np.mean(runs)) if runs else 0
+        n_used = len(set(test_states))
 
-        transitions = int(np.sum(np.diff(test_states) != 0))
-        runs = _state_run_lengths(test_states)
-        avg_duration = float(np.mean(runs)) if runs else 0.0
-        states_used = len(set(test_states))
+        sep = 0.0
+        if fwd_1m is not None:
+            dates = clean.index[idx:te]
+            sep = _return_sep(test_states, dates, fwd_1m, config.n_states)
 
         folds.append(ValidationFold(
             fold_id=fold_id,
-            train_start=clean.index[train_start_idx],
-            train_end=clean.index[train_end_idx],
-            test_start=clean.index[test_start_idx],
-            test_end=clean.index[min(test_end_idx - 1, len(clean) - 1)],
-            n_train=len(train_data),
-            n_test=len(test_data),
-            train_log_likelihood=train_ll,
-            test_log_likelihood=test_ll,
-            bic=bic,
-            aic=aic,
-            avg_state_duration_test=avg_duration,
-            n_transitions_test=transitions,
-            states_used_test=states_used,
+            train_start=clean.index[tr_start], train_end=clean.index[tr_end],
+            test_start=clean.index[idx], test_end=clean.index[min(te - 1, len(clean) - 1)],
+            n_train=len(train), n_test=len(test),
+            train_log_likelihood=train_ll, test_log_likelihood=test_ll,
+            bic=bic, aic=aic,
+            avg_state_duration_test=avg_d, n_transitions_test=trans,
+            states_used_test=n_used, state_return_separation=sep,
         ))
-
         fold_id += 1
-        test_start_idx += config.walk_forward_step_days
+        idx += config.walk_forward_step_days
 
     if not folds:
-        raise ValueError("No valid folds were completed")
+        raise ValueError("No valid folds completed")
 
     return ValidationReport(
-        n_states=config.n_states,
-        n_folds=len(folds),
-        folds=folds,
-        avg_bic=float(np.mean([f.bic for f in folds])),
-        avg_aic=float(np.mean([f.aic for f in folds])),
-        avg_test_log_likelihood=float(np.mean([f.test_log_likelihood for f in folds])),
-        avg_state_duration=float(np.mean([f.avg_state_duration_test for f in folds])),
-        direction_accuracy_std=float(np.std([f.test_log_likelihood for f in folds])),
-        avg_states_used=float(np.mean([f.states_used_test for f in folds])),
+        n_states=config.n_states, n_folds=len(folds), folds=folds,
+        avg_bic=np.mean([f.bic for f in folds]),
+        avg_aic=np.mean([f.aic for f in folds]),
+        avg_test_log_likelihood=np.mean([f.test_log_likelihood for f in folds]),
+        avg_state_duration=np.mean([f.avg_state_duration_test for f in folds]),
+        avg_states_used=np.mean([f.states_used_test for f in folds]),
+        avg_return_separation=np.mean([f.state_return_separation for f in folds]),
+        test_ll_std=np.std([f.test_log_likelihood for f in folds]),
+        duration_std=np.std([f.avg_state_duration_test for f in folds]),
     )
 
 
-def _count_params(n_states, n_features, cov_type):
-    n_means = n_states * n_features
-    n_trans = n_states * (n_states - 1)
-    n_start = n_states - 1
-    if cov_type == "full":
-        n_cov = n_states * n_features * (n_features + 1) // 2
-    elif cov_type == "diag":
-        n_cov = n_states * n_features
-    elif cov_type == "tied":
-        n_cov = n_features * (n_features + 1) // 2
-    elif cov_type == "spherical":
-        n_cov = n_states
+def _count_params(n_s, n_f, cov):
+    n_m = n_s * n_f
+    n_t = n_s * (n_s - 1)
+    n_st = n_s - 1
+    if cov == "full":
+        n_c = n_s * n_f * (n_f + 1) // 2
+    elif cov == "diag":
+        n_c = n_s * n_f
+    elif cov == "tied":
+        n_c = n_f * (n_f + 1) // 2
     else:
-        n_cov = n_states * n_features
-    return n_means + n_trans + n_start + n_cov
+        n_c = n_s * n_f
+    return n_m + n_t + n_st + n_c
 
 
-def _state_run_lengths(states):
+def _return_sep(states, dates, fwd, n_states):
+    sr = {}
+    for s, d in zip(states, dates):
+        r = fwd.get(d)
+        if r is not None and not np.isnan(r):
+            sr.setdefault(s, []).append(r)
+    if len(sr) < 2:
+        return 0.0
+    means = [np.mean(v) for v in sr.values() if len(v) > 5]
+    stds = [np.std(v) for v in sr.values() if len(v) > 5]
+    if len(means) < 2 or np.mean(stds) == 0:
+        return 0.0
+    return (max(means) - min(means)) / np.mean(stds)
+
+
+def _runs(states):
     if len(states) == 0:
         return []
-    runs = []
-    current = 1
+    out, c = [], 1
     for i in range(1, len(states)):
         if states[i] == states[i - 1]:
-            current += 1
+            c += 1
         else:
-            runs.append(current)
-            current = 1
-    runs.append(current)
-    return runs
+            out.append(c)
+            c = 1
+    out.append(c)
+    return out

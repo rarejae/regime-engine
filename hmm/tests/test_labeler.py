@@ -1,42 +1,41 @@
-"""Tests for state labeling consistency."""
+"""Tests for v3.1 state labeling with relative direction classification."""
 
-import numpy as np
 import pandas as pd
 import pytest
 
-from hmm.labeler import _compute_runs, _auto_label
+
+def test_days_in_state():
+    from hmm.labeler import _compute_days_in_state
+    s = pd.Series([0, 0, 0, 1, 1, 0, 0])
+    assert list(_compute_days_in_state(s)) == [1, 2, 3, 1, 2, 1, 2]
 
 
-class TestComputeRuns:
-    def test_single_state(self):
-        states = pd.Series([0, 0, 0, 0, 0])
-        assert _compute_runs(states, 0) == [5]
-        assert _compute_runs(states, 1) == []
-
-    def test_alternating(self):
-        states = pd.Series([0, 1, 0, 1, 0])
-        assert _compute_runs(states, 0) == [1, 1, 1]
-        assert _compute_runs(states, 1) == [1, 1]
-
-    def test_long_run(self):
-        states = pd.Series([1, 1, 1, 0, 0, 1, 1])
-        assert _compute_runs(states, 1) == [3, 2]
-        assert _compute_runs(states, 0) == [2]
+def test_classify_excess():
+    from hmm.labeler import _classify_excess
+    # unconditional mean = 0.007 (typical monthly SPY return)
+    assert _classify_excess(0.015, 0.007) == "bullish"   # excess = +0.008 > threshold
+    assert _classify_excess(0.002, 0.007) == "bearish"   # excess = -0.005 < -threshold
+    assert _classify_excess(0.008, 0.007) == "neutral"   # excess = +0.001 < threshold
+    assert _classify_excess(float("nan"), 0.007) == "neutral"
 
 
-class TestAutoLabel:
-    def test_steady_bull(self):
-        label = _auto_label(0.01, 0.03, {"vix_z": -0.5, "inflation_z": 0.0}, 0.3)
-        assert label == "steady_bull"
+def test_runs():
+    from hmm.labeler import _compute_runs
+    s = pd.Series([0, 0, 0, 1, 1, 0, 0, 0, 0, 1])
+    assert _compute_runs(s, 0) == [3, 4]
+    assert _compute_runs(s, 1) == [2, 1]
 
-    def test_stress_panic(self):
-        label = _auto_label(-0.03, 0.08, {"vix_z": 2.0, "inflation_z": 0.0}, 0.1)
-        assert label == "stress_panic"
 
-    def test_recovery_snap(self):
-        label = _auto_label(0.03, 0.06, {"vix_z": 1.0, "inflation_z": 0.0}, 0.1)
-        assert label == "recovery_snap"
+def test_direction_accuracy_excess():
+    from hmm.labeler import _direction_accuracy_excess
+    import pandas as pd
+    # Returns: 0.01, 0.02, -0.01, 0.015 with unconditional mean 0.007
+    # Excess: +0.003, +0.013, -0.017, +0.008
+    # For bullish: 3 of 4 have positive excess = 75%
+    returns = pd.Series([0.01, 0.02, -0.01, 0.015])
+    acc = _direction_accuracy_excess(returns, "bullish", 0.007)
+    assert acc == 0.75
 
-    def test_inflation_grind(self):
-        label = _auto_label(0.003, 0.03, {"vix_z": 0.0, "inflation_z": 1.0}, 0.2)
-        assert label == "inflation_grind"
+    # For bearish: 1 of 4 has negative excess = 25%
+    acc_b = _direction_accuracy_excess(returns, "bearish", 0.007)
+    assert acc_b == 0.25
