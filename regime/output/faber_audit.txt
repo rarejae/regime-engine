@@ -1,0 +1,113 @@
+================================================================================
+  FABER FILTER AUDIT REPORT
+================================================================================
+
+AUDIT 1: SIGNAL ALIGNMENT — LOOK-AHEAD BUG FOUND AND FIXED
+
+  ORIGINAL CODE:
+    trend_signals_df = compute_trend_signals(prices_df)
+    # Signal at index 2008-01-01 uses January 2008 end-of-month close
+    # Applied on first trading day of January 2008 → sees the whole month
+    RESULT: 1-MONTH LOOK-AHEAD BUG — CONFIRMED
+
+  FIX APPLIED:
+    trend_signals_df = compute_trend_signals(prices_df).shift(1)
+    # Now signal at index 2008-01-01 is actually December 2007's signal
+    # Applied to January returns → correct PIT alignment
+
+  VERIFICATION:
+    IVV Nov 2007: price=105.60, SMA=104.86, above=True
+    IVV Dec 2007: price=104.41, SMA=105.42, above=False ← first below signal
+    IVV Jan 2008: price=98.10,  SMA=105.24, above=False
+
+    With fix: Dec 2007 "below" signal → applied to Jan 2008 (CORRECT)
+    Without fix: Jan 2008 "below" signal → applied to Jan 2008 (LOOK-AHEAD)
+
+AUDIT 2: CORRECTED RESULTS (side-by-side)
+
+                        ORIGINAL (bugged)   CORRECTED (fixed)
+  Faber Sharpe:              1.76              0.90
+  Faber AnnRet:             15.5%              8.4%
+  Faber MaxDD:              -8.3%            -13.0%
+  Faber Final ($1):        $38.29             $6.90
+  Harvey+Faber Sharpe:       1.86              0.82
+  Harvey+Faber Final:      $28.99             $4.54
+
+  The look-ahead inflated Sharpe by nearly 2x (1.76 vs 0.90).
+  Terminal value inflated by 5.5x ($38.29 vs $6.90).
+
+AUDIT 3: CASH RETURN ASSUMPTION — PASS
+  Cash earns T-bill rate (FRED DTB3 / 360):
+    2005: 2.20% annual
+    2008: 0.96% annual
+    2018: 1.36% annual
+    2023: 3.55% annual
+  This is realistic. With 35% average cash allocation, cash yield contributes
+  ~0.7-1.2% to the portfolio annually depending on the rate environment.
+
+AUDIT 4: 35% AVERAGE CASH — EXPLAINED
+  Assets below their 10-month SMA (% of months):
+    DBC:  57% (commodities trend poorly — out more than half the time)
+    VGLT: 45% (rising rates = long bonds below SMA often)
+    IAU:  41% (gold is cyclical)
+    QQQ:  24% (strong tech trend, mostly above SMA)
+    IVV:  21% (equity uptrend dominant, rarely below)
+
+  With baseline weights: IVV 45%, QQQ 25%, VGLT 5%, IAU 10%, DBC 5%
+  Expected cash from filtering: 0.45×21% + 0.25×24% + 0.05×45% + 0.10×41% + 0.05×57%
+    = 9.45% + 6% + 2.25% + 4.1% + 2.85% = 24.65% expected
+  Actual: 35% — higher because filtered months tend to cluster (multiple
+  assets below SMA simultaneously during drawdowns).
+
+AUDIT 5: WHY CORRECTED FABER (0.90) STILL BEATS BASELINE (0.70)
+
+  The Faber filter's edge comes from asymmetric exposure:
+  - During bull markets (IVV/QQQ above SMA 75-79% of the time): fully invested
+  - During drawdowns: equity moved to cash, avoiding the worst losses
+  - Net cost: ~2% annual return drag from missed reentry (lag effect)
+  - Net benefit: ~10-15% drawdown avoidance during GFC/COVID/2022
+
+  Corrected crisis drawdowns:
+    GFC:   Faber +0.9% vs Baseline -26.0% (avoided -26.9pp of loss)
+    COVID: Faber -11.9% vs Baseline -23.3% (avoided -11.4pp)
+    2022:  Faber -8.7% vs Baseline -17.2% (avoided -8.5pp)
+
+  The drawdown avoidance more than compensates for the return drag
+  during bull markets. The Sharpe improvement (0.90 vs 0.70) is +0.20,
+  which is meaningful but not the spectacular 1.76 from the bugged version.
+
+AUDIT 6: 2008 FABER RETURN (-5.1% corrected, was +3.1% bugged)
+  With the fix, Faber lost -5.1% in 2008 (vs Baseline -26.9%, IVV -36.8%).
+  The 1-month lag means Faber was still invested in equity during December 2007
+  and January 2008 (the first month of the crash), adding ~3-4% loss that
+  the bugged version avoided by seeing the month's close before deciding.
+
+AUDIT 7: COMPARISON TO PUBLISHED FABER
+  Published Faber (2007 paper): ~0.6-0.8 Sharpe on equal-weight 5-asset universe
+  Our corrected result: 0.90 Sharpe on equity-heavy 6-asset universe
+
+  The 0.10-0.30 Sharpe premium over published results is explained by:
+  (a) Higher equity weight (70% vs 20%) captures more equity risk premium
+  (b) QQQ outperformed in 2002-2026 (tech secular trend)
+  (c) Our period (2002-2026) had strong equity trends — favorable for SMA filters
+  (d) Survivorship: we're testing on known-good ETF proxies
+
+  The corrected 0.90 Sharpe is PLAUSIBLE and within reasonable range of
+  published results. The 1.76 was not.
+
+OVERALL VERDICT:
+  LOOK-AHEAD BUG: FOUND AND FIXED
+  CORRECTED FABER SHARPE: 0.90 (was 1.76)
+  CORRECTED HARVEY+FABER SHARPE: 0.82 (was 1.86)
+  CASH ASSUMPTION: PASS (T-bill rate, realistic)
+  RETURN LEVELS: PLAUSIBLE after correction
+
+  The Faber filter STILL adds value after correction:
+  - Sharpe 0.90 > Baseline 0.70 (+0.20 improvement)
+  - Max DD -13.0% vs Baseline -39.8% (dramatic improvement)
+  - But returns are lower: 8.4% vs 10.0% (cost of being in cash 35% of time)
+
+  Harvey+Faber at 0.82 Sharpe is slightly better than Harvey alone (0.64)
+  but WORSE than Faber alone (0.90). Harvey's weak forward-return signal
+  actually hurts when combined with Faber — it sometimes overrides the
+  trend filter's correct positioning.

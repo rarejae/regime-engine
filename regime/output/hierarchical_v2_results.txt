@@ -1,0 +1,151 @@
+INFO | Using cached monthly history: (855, 7)
+INFO | Daily ETF returns: 7367 days, ['IVV', 'QQQ', 'VGLT', 'IAU', 'DBC', 'VNQ', 'cash']
+INFO |   IVV: 5821 days, 57% bull, 3.8 transitions/yr
+WARNING | Model is not converging.  Current: -2313.5258065163 is not greater than -2313.5258064468903. Delta is -6.940945240785368e-08
+INFO |   QQQ: 5524 days, 58% bull, 3.1 transitions/yr
+INFO |   VGLT: 4673 days, 24% bull, 3.4 transitions/yr
+WARNING | Model is not converging.  Current: -2638.2976492151815 is not greater than -2638.2976481274045. Delta is -1.0877770364459138e-06
+INFO |   IAU: 4091 days, 54% bull, 4.1 transitions/yr
+INFO |   DBC: 3786 days, 58% bull, 3.3 transitions/yr
+INFO | Daily data: 8720 days, cols=['spy_close', 'hy_spread']
+INFO | Daily basket: 7464 days, 5 assets, from 1998-01-01
+Fitting 5 per-asset HMMs...
+Fitting single SPY HMM...
+
+================================================================================
+  HIERARCHICAL v2: PER-ASSET HMMs
+================================================================================
+Backtest: 3928 days (2011-03-09 to 2026-03-27)
+
+Per-asset HMM diagnostics:
+   Asset  Bull%  Bear%  Trans/yr  AvgRun  Noisy
+     IVV   57%   43%       3.8      66     no
+     QQQ   58%   42%       3.1      81     no
+    VGLT   24%   76%       3.4      74     no
+     IAU   54%   46%       4.1      62     no
+     DBC   58%   42%       3.3      76     no
+
+================================================================================
+  PERFORMANCE
+================================================================================
+
+          Config  AnnRet  AnnVol  Sharpe    MaxDD  CorrIVV  AnnTC
+  ----------------------------------------------------------
+    PerAsset HMM   9.3%  12.2%    0.76  -21.1%    0.77 0.22%
+      Single HMM   9.7%  12.1%    0.80  -21.6%    0.76 0.21%
+           Faber   9.1%   9.7%    0.94  -13.0%    0.78 0.13%
+        Baseline  12.0%  13.1%    0.92  -23.7%    0.97 0.00%
+           60/40   9.7%  10.4%    0.93  -27.2%    0.83 0.00%
+         IVV B&H  13.7%  17.2%    0.80  -33.7%    1.00 0.00%
+
+================================================================================
+  CRISIS DRAWDOWNS
+================================================================================
+
+  GFC:
+
+  COVID:
+      PerAsset HMM:  -16.4%
+        Single HMM:  -15.9%
+             Faber:  -11.9%
+          Baseline:  -23.3%
+           IVV B&H:  -33.4%
+
+  2022:
+      PerAsset HMM:  -14.4%
+        Single HMM:  -15.9%
+             Faber:   -8.7%
+          Baseline:  -17.2%
+           IVV B&H:  -17.7%
+
+================================================================================
+  BULL CAPTURE
+================================================================================
+
+  2013 (Harvey worst):
+      PerAsset HMM:  +24.0%
+        Single HMM:  +23.8%
+             Faber:  +22.0%
+          Baseline:  +17.8%
+           IVV B&H:  +32.3%
+
+  2019 (Strong bull):
+      PerAsset HMM:  +19.2%
+        Single HMM:  +19.0%
+             Faber:  +15.1%
+          Baseline:  +26.9%
+           IVV B&H:  +31.2%
+
+  2023 (Tech momentum):
+      PerAsset HMM:  +19.9%
+        Single HMM:  +22.7%
+             Faber:  +16.7%
+          Baseline:  +26.1%
+           IVV B&H:  +26.2%
+
+================================================================================
+  DECISION TRACES (per-asset vs single HMM)
+================================================================================
+
+  2013-06:
+    Faber ineligible: ['VGLT', 'IAU', 'DBC'], pool=20%
+    Per-asset HMM zones: {'IVV': 'trending', 'QQQ': 'trending', 'VGLT': 'not_trending', 'IAU': 'not_trending', 'DBC': 'trending'}
+    Single HMM bull_prob: 0.00
+    Final equity — PerAsset: 85%, Single: 77%
+    PerAsset weights: IVV=47%  QQQ=38%  cash=15%
+    Single   weights: IVV=45%  QQQ=32%  cash=24%
+
+  2020-03:
+    Faber ineligible: ['IVV', 'DBC'], pool=50%
+    Per-asset HMM zones: {'IVV': 'not_trending', 'QQQ': 'trending', 'VGLT': 'not_trending', 'IAU': 'trending', 'DBC': 'trending'}
+    Single HMM bull_prob: 0.06
+    Final equity — PerAsset: 60%, Single: 51%
+    PerAsset weights: IAU=12%  QQQ=60%  VGLT=17%  cash=11%
+    Single   weights: IAU=10%  QQQ=51%  VGLT=20%  cash=19%
+
+  2022-06:
+    Faber ineligible: ['IVV', 'QQQ', 'VGLT', 'IAU'], pool=85%
+    Per-asset HMM zones: {'IVV': 'trending', 'QQQ': 'trending', 'VGLT': 'not_trending', 'IAU': 'neutral', 'DBC': 'not_trending'}
+    Single HMM bull_prob: 1.00
+    Final equity — PerAsset: 0%, Single: 0%
+    PerAsset weights: DBC=60%  cash=40%
+    Single   weights: DBC=60%  cash=40%
+
+================================================================================
+  ASSET ZONE DIVERGENCE (did per-asset HMMs differ across assets?)
+================================================================================
+  Months with different zones across assets: 559/642 (87%)
+
+================================================================================
+  CALENDAR YEAR RETURNS
+================================================================================
+    Year   PerHMM   Single    Faber     Base      IVV
+    2007       --       --       --       --       --
+    2008       --       --       --       --       --
+    2009       --       --       --       --       --
+    2010       --       --       --       --       --
+    2011  -12.2%  -11.5%   -3.0%   +0.9%   -3.4%
+    2012  +12.6%  +12.5%   +6.2%  +12.9%  +16.0%
+    2013  +24.0%  +23.8%  +22.0%  +17.8%  +32.3%
+    2014  +10.9%  +10.1%  +10.3%  +10.3%  +13.5%
+    2015   -0.9%   -1.3%   -2.2%   +0.5%   +1.2%
+    2016   +1.9%   +3.4%   +2.1%   +9.5%  +12.0%
+    2017  +18.8%  +18.1%  +17.8%  +19.8%  +21.7%
+    2018   -3.3%   -0.5%   +0.0%   -2.3%   -4.6%
+    2019  +19.2%  +19.0%  +15.1%  +26.9%  +31.2%
+    2020  +21.8%  +21.5%  +17.5%  +24.3%  +18.3%
+    2021  +22.5%  +23.3%  +20.1%  +20.9%  +28.7%
+    2022  -17.1%  -18.5%  -10.8%  -17.1%  -18.2%
+    2023  +19.9%  +22.7%  +16.7%  +26.1%  +26.2%
+    2024  +21.2%  +21.3%  +20.1%  +20.3%  +24.9%
+
+================================================================================
+  FINAL VALUES ($1)
+================================================================================
+    PerAsset HMM: $    3.60
+      Single HMM: $    3.83
+           Faber: $    3.65
+        Baseline: $    5.32
+           60/40: $    3.93
+         IVV B&H: $    6.27
+

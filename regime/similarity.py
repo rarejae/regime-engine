@@ -75,6 +75,74 @@ def compute_distances(
     )
 
 
+def compute_distances_mahalanobis(
+    z_data: pd.DataFrame,
+    target_date: pd.Timestamp,
+    config: RegimeConfig,
+    cov_window: int = 120,
+) -> SimilarityResult:
+    """Compute Mahalanobis distance from target month to all historical months.
+
+    Uses trailing cov_window-month covariance matrix of z-scored variables.
+    Excludes trailing 36 months (anti-momentum mask).
+    """
+    if target_date not in z_data.index:
+        raise ValueError(f"{target_date} not in data")
+
+    target_z = z_data.loc[target_date].values
+
+    # Candidate pool: exclude trailing 36 months
+    cutoff = target_date - pd.DateOffset(months=config.exclude_trailing_months)
+    candidates = z_data[z_data.index <= cutoff]
+
+    if len(candidates) == 0:
+        raise ValueError(f"No candidates before {cutoff}")
+
+    # Covariance matrix from trailing window through target_date - 1 month
+    cov_end = target_date - pd.DateOffset(months=1)
+    cov_data = z_data[z_data.index <= cov_end].tail(cov_window)
+
+    if len(cov_data) < 30:
+        raise ValueError(f"Insufficient data for covariance ({len(cov_data)} < 30)")
+
+    cov_matrix = np.array(cov_data.cov().values, dtype=np.float64)
+    # Regularize: add small ridge to prevent singularity
+    cov_matrix += np.eye(cov_matrix.shape[0]) * 1e-6
+
+    try:
+        inv_cov = np.linalg.inv(cov_matrix)
+    except np.linalg.LinAlgError:
+        inv_cov = np.linalg.pinv(cov_matrix)
+
+    # Mahalanobis distance: d = sqrt((z_i - z_T)' Σ⁻¹ (z_i - z_T))
+    diffs = np.array(candidates.values - target_z, dtype=np.float64)
+    # Vectorized: (N, V) @ (V, V) -> (N, V), then element-wise multiply and sum
+    mahal_sq = np.sum(diffs @ inv_cov * diffs, axis=1)
+    # Clip negative values from numerical noise
+    mahal_sq = np.maximum(mahal_sq, 0)
+    distances = pd.Series(np.sqrt(mahal_sq), index=candidates.index)
+
+    sim_thresh = distances.quantile(config.similar_quantile)
+    dissim_thresh = distances.quantile(config.dissimilar_quantile)
+
+    similar = distances[distances <= sim_thresh].sort_values()
+    dissimilar = distances[distances >= dissim_thresh].sort_values(ascending=False)
+
+    closest_idx = distances.idxmin()
+
+    return SimilarityResult(
+        target_date=target_date,
+        target_z=target_z,
+        distances=distances,
+        similar_dates=similar.index.tolist(),
+        dissimilar_dates=dissimilar.index.tolist(),
+        min_distance=float(distances.min()),
+        median_distance=float(distances.median()),
+        closest_date=closest_idx,
+        closest_z=z_data.loc[closest_idx].values,
+    )
+
+
 def compute_all_similarities(
     z_data: pd.DataFrame,
     config: RegimeConfig,
