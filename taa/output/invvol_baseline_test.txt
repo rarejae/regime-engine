@@ -1,0 +1,65 @@
+======================================================================
+  STATIC INVERSE-VOL BASELINE TEST
+======================================================================
+
+WEIGHT COMPUTATION (pre-2002 monthly returns)
+   Asset         Data Range  Months  Ann Vol  InvVol Wt  Current Wt    Delta
+  ----------------------------------------------------------------------
+     IVV  1957-02 - 2001-12     539   12.2%      2.9%      45.0%  -42.1%
+     QQQ  1985-11 - 2001-12     194   28.5%      1.2%      25.0%  -23.8%
+    VGLT  1960-02 - 2001-12     503   17.8%      1.9%       5.0%   -3.1%
+     IAU  1960-02 - 2001-12     503    3.3%     10.4%      10.0%   +0.4%
+     DBC  1960-02 - 2001-12     503    2.5%     14.1%       5.0%   +9.1%
+    cash  1960-01 - 2001-12     504    0.5%     69.4%      10.0%  +59.4%
+
+  Total equity weight: subjective 70% vs inverse-vol 4.1%
+
+PERFORMANCE COMPARISON (2002-2026)
+          Metric   Subjective  Inverse-Vol      Delta
+  --------------------------------------------------
+     Ann. Return       12.4%        6.3%    -6.19%
+      Volatility       14.4%        6.0%    -8.40%
+          Sharpe        0.87        1.05    +0.184
+         Sortino        1.10        1.36    +0.269
+    Max Drawdown      -23.0%      -10.9%   +12.08%
+          Calmar        0.54        0.58    +0.033
+     Terminal $1 $     15.80 $      4.35    -11.45
+
+CRISIS PERIODS
+          Period   Subjective  Inverse-Vol      Delta
+  --------------------------------------------------
+     GFC 2008-09       +5.4%       +3.7%    -1.66%
+        (max DD)       -7.7%       -6.9%    +0.79%
+      COVID 2020      -20.7%       -5.7%   +15.03%
+        (max DD)      -23.0%       -7.5%   +15.46%
+       2022 Bear      -11.8%       -0.8%   +10.98%
+        (max DD)      -15.6%       -9.5%    +6.13%
+
+LEVERAGE TIER FREQUENCY
+      Tier   Subjective  Inverse-Vol
+  ----------------------------------
+    Tier 0      115 (45%)      115 (45%)
+    Tier 1       59 (23%)       59 (23%)
+    Tier 2       84 (33%)       84 (33%)
+  De-lever events: 14 vs 14
+
+ALLOCATION SHIFT ANALYSIS
+     Asset  Subj Mean  InvVol Mean    Delta
+  ----------------------------------------
+       IVV     36.7%        7.4% -29.28%
+       QQQ     22.3%        6.5% -15.82%
+      VGLT      8.0%        6.0%  -2.01%
+       IAU      9.2%        9.4%  +0.16%
+       DBC      4.1%        8.5%  +4.34%
+      cash     19.6%       62.3% +42.62%
+
+  Effective equity exposure: subjective 59.0% vs inverse-vol 13.9%
+
+KEY QUESTION: Does inverse-vol produce a more conservative or aggressive portfolio?
+  -> More conservative: lower equity, higher bond/gold/commodity allocation.
+     Equity exposure drops 45.1% vs subjective.
+
+RECOMMENDATION
+  Adopt inverse-vol baseline — meaningful Sharpe improvement.
+  Sharpe gain of +0.184 with max DD change of +12.1%.
+  Removes subjective weight judgment; grounded in pre-backtest vol data.
