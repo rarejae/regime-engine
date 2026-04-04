@@ -34,7 +34,7 @@ class RegimeConfig:
 
     # Paths
     monthly_history_path: Path = Path("data/macro/monthly_history.parquet")
-    output_dir: Path = Path("regime/output")
+    output_dir: Path = Path("experiments/signal_development/output")
 
     # Fetch
     fred_start: str = "1955-01-01"  # Fetch extra for rolling windows

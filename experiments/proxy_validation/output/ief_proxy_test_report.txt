@@ -1,0 +1,70 @@
+======================================================================
+  IEF PROXY VALIDATION
+======================================================================
+
+GS10: 1960-01-01 to 2026-03-01 (795 months)
+IEF:  2002-08-01 to 2026-04-01 (285 months)
+
+
+IEF vs GS10 duration model (duration=7.5)
+--------------------------------------------------
+  Overlap period:       2002-08 to 2026-03 (284 months)
+  Correlation:          0.7180    [Poor]
+  Mean monthly return — ETF: 0.313%  Proxy: 0.269%  Diff: -0.043%
+  Annualized ret diff:  -0.52% (proxy understates)    [Good]
+  Tracking error:       1.36% monthly, 4.72% annualized    [Good]
+  Max single-mo diverge:-5.31% (2008-11)
+  ── Overall rating:    Poor
+
+
+DURATION SENSITIVITY
+--------------------------------------------------
+  Duration  Correlation  Ann.Ret.Diff  Track.Err(ann)
+  --------  -----------  ------------  --------------
+       5.0       0.7192        -0.56%           4.77%
+       5.5       0.7189        -0.55%           4.70%
+       6.0       0.7187        -0.54%           4.66%
+       6.5       0.7184        -0.54%           4.65%
+       7.0       0.7182        -0.53%           4.67%
+       7.5       0.7180        -0.52%           4.72%
+       8.0       0.7178        -0.51%           4.79%
+       8.5       0.7176        -0.50%           4.89%
+       9.0       0.7174        -0.49%           5.02%
+       9.5       0.7172        -0.48%           5.17%
+      10.0       0.7171        -0.48%           5.34%
+      10.5       0.7169        -0.47%           5.53%
+      11.0       0.7168        -0.46%           5.74%
+      11.5       0.7167        -0.45%           5.96%
+      12.0       0.7166        -0.44%           6.19%
+
+  Optimal duration: 5.0 (correlation = 0.7192)
+
+
+IEF vs GS10 duration model (OPTIMAL duration=5.0)
+--------------------------------------------------
+  Overlap period:       2002-08 to 2026-03 (284 months)
+  Correlation:          0.7192    [Poor]
+  Annualized ret diff:  -0.56% (proxy understates)    [Good]
+  Tracking error:       4.77% annualized    [Good]
+  Max single-mo diverge:-6.01% (2008-11)
+  ── Overall rating:    Poor
+
+
+COMPARISON: IEF vs VGLT PROXY QUALITY
+--------------------------------------------------
+  Metric                    IEF (dur=5.0)       VGLT (dur=17)
+  ------                    -------------       -------------
+  Correlation                      0.7192              0.7342
+  Ann. return diff                 -0.56%              -1.31%
+  Tracking error (ann)              4.77%               8.87%
+  Overlap months                      284                 194
+  Rating                             Poor                Poor
+
+  Correlation improvement:     -0.0149
+  Tracking error improvement:  +4.10% (lower is better)
+
+
+RECOMMENDATION
+==================================================
+  KEEP VGLT — IEF proxy also rated Poor
+  Neither proxy achieves acceptable fidelity with free data.

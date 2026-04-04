@@ -1,0 +1,211 @@
+================================================================================
+  TREASURY DATA PIPELINE
+================================================================================
+
+
+PHASE 1: DATA AVAILABILITY
+==================================================
+
+  Symbol   Description                      Start          End    Rows
+  -------- ------------------------- ------------ ------------ -------
+  ^TNX     10Y Yield Index             1970-01-02   2026-04-01   14083
+  ^TYX     30Y Yield Index             1977-02-15   2026-04-01   12307
+  ZN=F     10Y T-Note Futures          2000-09-21   2026-04-02    6411
+  ZB=F     30Y T-Bond Futures          2000-09-21   2026-04-02    6417
+  IEF      7-10Y Treasury ETF          2002-07-30   2026-04-01    5957
+  TLT      20+Y Treasury ETF           2002-07-30   2026-04-01    5957
+
+  Key finding: ^TNX goes back to 1970 (yields, not prices)
+  Can synthesize bond returns via duration model, validated against futures.
+
+  Gap analysis:
+    ^TNX: 0 missing months
+    ^TYX: 0 missing months
+    ZN=F: 0 missing months
+    ZB=F: 0 missing months
+    IEF: 0 missing months
+    TLT: 0 missing months
+
+
+================================================================================
+  PHASE 2: BUILD RETURN SERIES
+==================================================
+
+  10-YEAR DURATION OPTIMIZATION (^TNX model vs ZN=F)
+  Scanning duration 4.0 to 10.0...
+
+  Duration    Corr    Beta      TE
+  -------- ------- ------- -------
+       4.0  0.9534   0.580    2.7%
+       4.5  0.9541   0.652    2.4%
+       5.0  0.9546   0.723    2.1%
+       5.5  0.9550   0.795    1.9%
+       6.0  0.9552   0.866    1.8%
+       6.5  0.9554   0.937    1.8%
+       7.0  0.9556   1.009    1.9%
+       7.5  0.9557   1.080    2.0%
+       8.0  0.9558   1.152    2.3%
+       8.5  0.9559   1.223    2.6%
+       9.0  0.9560   1.295    3.0%
+       9.5  0.9560   1.366    3.3%
+      10.0  0.9561   1.438    3.7% ← best
+
+  30-YEAR DURATION OPTIMIZATION (^TYX model vs ZB=F)
+  Scanning duration 12.0 to 22.0...
+
+  Duration    Corr    Beta      TE
+  -------- ------- ------- -------
+      12.0  0.9389   0.872    3.6%
+      12.5  0.9390   0.909    3.6%
+      13.0  0.9390   0.945    3.7%
+      13.5  0.9390   0.981    3.8%
+      14.0  0.9390   1.017    3.9%
+      14.5  0.9391   1.053    4.1%
+      15.0  0.9391   1.090    4.3%
+      15.5  0.9391   1.126    4.5%
+      16.0  0.9391   1.162    4.8%
+      16.5  0.9391   1.198    5.0%
+      17.0  0.9391   1.234    5.3%
+      17.5  0.9392   1.271    5.6%
+      18.0  0.9392   1.307    5.9%
+      18.5  0.9392   1.343    6.3%
+      19.0  0.9392   1.379    6.6%
+      19.5  0.9392   1.415    6.9%
+      20.0  0.9392   1.452    7.3%
+      20.5  0.9392   1.488    7.6%
+      21.0  0.9392   1.524    8.0%
+      21.5  0.9392   1.560    8.4%
+      22.0  0.9392   1.596    8.7% ← best
+
+
+================================================================================
+  PHASE 3: FUTURES vs ETF VALIDATION
+==================================================
+
+  ZN=F vs IEF (10-Year)
+  ---------------------
+  Overlap:          2002-08 to 2026-04 (285 months)
+  Correlation:      0.9605
+  Beta:             0.8448
+  R²:               0.9226
+  Ann. Return Proxy:0.17%
+  Ann. Return ETF:  3.73%
+  Return diff:      -3.56%
+  Tracking error:   1.93% ann.
+  PASS:             YES (threshold: corr > 0.90)
+
+  ZB=F vs TLT (30-Year)
+  ---------------------
+  Overlap:          2002-08 to 2026-04 (285 months)
+  Correlation:      0.9344
+  Beta:             0.7260
+  R²:               0.8732
+  Ann. Return Proxy:0.81%
+  Ann. Return ETF:  4.51%
+  Return diff:      -3.69%
+  Tracking error:   5.27% ann.
+  PASS:             YES (threshold: corr > 0.90)
+
+  ^TNX dur=10.0 vs IEF (end-to-end 10Y)
+  ----------------------------------------
+  Overlap:          2002-08 to 2026-04 (285 months)
+  Correlation:      0.9890
+  Beta:             1.3209
+  R²:               0.9780
+  Ann. Return Proxy:3.14%
+  Ann. Return ETF:  3.73%
+  Return diff:      -0.59%
+  Tracking error:   2.51% ann.
+  PASS:             YES (threshold: corr > 0.90)
+
+  ^TYX dur=22.0 vs TLT (end-to-end 30Y)
+  ----------------------------------------
+  Overlap:          2002-08 to 2026-04 (285 months)
+  Correlation:      0.9855
+  Beta:             1.3004
+  R²:               0.9713
+  Ann. Return Proxy:4.07%
+  Ann. Return ETF:  4.51%
+  Return diff:      -0.44%
+  Tracking error:   5.06% ann.
+  PASS:             YES (threshold: corr > 0.90)
+
+
+================================================================================
+  PHASE 4: INSTRUMENT SELECTION & COMBINED SERIES
+==================================================
+
+  HEAD-TO-HEAD COMPARISON
+  Criterion                        10-Year (ZN/IEF)   30-Year (ZB/TLT)
+  ------------------------------ ------------------ ------------------
+  Futures-ETF corr                           0.9605             0.9344
+  DurModel-ETF corr                          0.9890             0.9855
+  DurModel-Futures corr                      0.9561             0.9392
+  Optimal duration                             10.0               22.0
+  Yield data starts                         1970-01            1977-02
+  ZN-SPY corr                                -0.142                  
+  ZB-SPY corr                                -0.105
+
+  SELECTION: 10Y (^TNX → ZN=F → IEF)
+  Duration model parameter: 10.0
+
+  Building combined return series...
+    Layer 1 (duration model): 1970-02 to 2026-04 (675 months)
+    Layer 2 (futures):        2000-10 to 2026-04 (307 months)
+    Layer 3 (ETF):           2002-08 to 2026-04 (285 months)
+
+    Combined series: 1970-02 to 2026-04 (675 months)
+    Splice points: Futures from 2000-10; ETF from 2002-08
+    Mean return: 0.549%/mo (6.58% ann)
+    Volatility: 11.0% ann
+    Synthetic price range: 99.8 to 3238.3
+
+
+================================================================================
+  PHASE 5: PARQUET INTEGRATION
+==================================================
+
+  Existing file: 830 rows × 8 cols
+  Columns: ['IVV', 'QQQ', 'VXUS', 'VGLT', 'IAU', 'DBC', 'VNQ', 'cash']
+  Date range: 1957-02 to 2026-03
+
+  TSY column added:
+    Coverage: 674 months with data, 156 NaN
+    First valid: 1970-02
+    Last valid:  2026-03
+
+  Saved: data/macro/roth_asset_returns_5asset.parquet
+    Shape: (830, 9)
+  Saved: data/macro/treasury_daily_prices.parquet
+    Daily prices: 2000-09-21 to 2026-04-01
+
+
+================================================================================
+  VALIDATION REPORT
+==================================================
+
+  DATA SOURCE
+  Instrument:     10Y Treasury
+  Yield index:    ^TNX (yfinance, 1970-01 to present)
+  Futures:        ZN=F (yfinance, 2000-09 to present)
+  ETF:            IEF (yfinance, 2002-07 to present)
+  Duration param: 10.0
+
+  VALIDATION CHAIN
+  Duration model → Futures:  corr = 0.9561 PASS
+  Futures → ETF:             corr = 0.9605 PASS
+  Duration model → ETF:      corr = 0.9890 PASS
+
+  COMBINED SERIES
+  Pre-2000:  ^TNX duration model (dur=10.0)
+  2000-2002: ZN=F futures returns
+  2002+:     IEF ETF returns
+  Splice:    Futures from 2000-10; ETF from 2002-08
+  Coverage:  1970-02 to 2026-04 (675 months)
+  Gaps:      0
+
+  OUTPUT FILES
+  Asset returns: data/macro/roth_asset_returns_5asset.parquet
+  Daily prices:  data/macro/treasury_daily_prices.parquet
+
+  READY FOR BACKTEST: YES

@@ -1,0 +1,100 @@
+================================================================================
+  PORTFOLIO BETA & RISK METRICS
+================================================================================
+
+
+OVERALL (2002-2026)
+----------------------------------------------------------------------
+  Metric                   6-Asset Lev   4-Asset Lev    6-Asset 1x    4-Asset 1x
+  ---------------------- ------------- ------------- ------------- -------------
+  Beta                           0.533         0.528         0.424         0.421
+  Alpha (ann.)                  +6.04%        +6.09%        +5.47%        +5.54%
+  R²                             0.445         0.454         0.456         0.473
+  Tracking Error                 11.2%         11.0%         10.9%         10.8%
+  Information Ratio              0.104         0.106        -0.049        -0.047
+  Up Capture                     79.2%         78.5%         64.5%         63.8%
+  Down Capture                   57.2%         55.9%         43.5%         42.2%
+  Up/Down Ratio                   1.39          1.40          1.48          1.51
+  Months                           288           288           288           288
+
+
+================================================================================
+  BY LEVERAGE TIER
+================================================================================
+
+  6-Asset Lev:
+    Metric                      Tier 0 (1.0x)      Tier 1 (1.3x)     Tier 2 (1.65x)
+    ---------------------- ------------------ ------------------ ------------------
+    Months                                155                 72                 61
+    Beta                                0.321              1.087              1.353
+    Alpha (ann.)                       +1.43%             +0.84%             +2.34%
+    Avg Monthly Ret                     0.25%              1.70%              1.91%
+    Volatility (ann.)                   10.1%              11.0%              15.0%
+
+  4-Asset Lev:
+    Metric                      Tier 0 (1.0x)      Tier 1 (1.3x)     Tier 2 (1.65x)
+    ---------------------- ------------------ ------------------ ------------------
+    Months                                155                 72                 61
+    Beta                                0.315              1.099              1.341
+    Alpha (ann.)                       +1.35%             +0.66%             +2.80%
+    Avg Monthly Ret                     0.24%              1.71%              1.93%
+    Volatility (ann.)                    9.6%              11.1%              14.9%
+
+
+================================================================================
+  BY CRISIS PERIOD
+================================================================================
+
+  6-Asset Lev:
+    Metric                           GFC         COVID     2022 Bear
+    ---------------------- ------------- ------------- -------------
+    Days                             146            24           209
+    Beta (daily)                  -0.077         0.444         0.150
+    Alpha (ann.)                   +5.9%        -62.0%        -14.2%
+    Cumul. Return                  +6.1%        -21.0%        -13.9%
+    vs IVV                        +43.1%        +12.4%         +3.8%
+
+  4-Asset Lev:
+    Metric                           GFC         COVID     2022 Bear
+    ---------------------- ------------- ------------- -------------
+    Days                             146            24           209
+    Beta (daily)                  -0.031         0.393         0.131
+    Alpha (ann.)                   +1.4%        -81.3%        -11.7%
+    Cumul. Return                  +1.7%        -20.8%        -11.6%
+    vs IVV                        +38.6%        +12.6%         +6.2%
+
+
+================================================================================
+  BY MARKET REGIME (monthly)
+================================================================================
+
+  Bull Months (N=192)
+    Metric                   6-Asset Lev   4-Asset Lev       IVV B&H
+    ---------------------- ------------- ------------- -------------
+    Avg Return                    2.53%        2.51%        3.19%
+    Beta                           0.407         0.459         1.000
+    Capture %                      79.2%         78.5%        100.0%
+
+  Bear Months (N=96)
+    Metric                   6-Asset Lev   4-Asset Lev       IVV B&H
+    ---------------------- ------------- ------------- -------------
+    Avg Return                   -2.16%       -2.11%       -3.78%
+    Beta                           0.225         0.172         1.000
+    Capture %                      57.2%         55.9%        100.0%
+
+
+================================================================================
+  INTERPRETATION
+================================================================================
+
+  Both systems run at sub-market beta (0.53 and 0.53), confirming
+  the Faber/HMM/Kritzman hierarchy actively reduces market exposure.
+  Up/down capture ratios (1.39 and 1.40) exceed 1.0,
+  meaning both systems capture more upside than downside — the hallmark
+  of effective tactical allocation.
+  The 4-asset and 6-asset betas are nearly identical, confirming that
+  dropping VGLT/DBC doesn't materially change the portfolio's market
+  sensitivity. The risk profile is preserved with cleaner data.
+
+  Information ratio: 6-asset 0.104 vs 4-asset 0.106.
+  The 4-asset generates more excess return per unit of tracking error.

@@ -1,0 +1,48 @@
+================================================================================
+  TREASURY DATA PIPELINE — ^TNX + IEF SPLICE
+================================================================================
+
+DATA SOURCES
+----------------------------------------
+  ^TNX (10Y yield): 1970-01-02 to 2026-04-02 (14084 daily)
+  IEF (7-10Y ETF):  2002-07-30 to 2026-04-02 (5958 daily)
+  Splice date:       2002-08-01 (IEF takes over)
+
+MONTHLY RETURN SERIES
+----------------------------------------
+  Pre-ETF (^TNX dur=10.0): 1970-02 to 2002-07 (390 months)
+  ETF era (IEF):                 2002-08 to 2026-04 (285 months)
+  Combined:                      1970-02 to 2026-04 (675 months)
+  Mean return: 0.567%/mo (6.81% ann)
+  Volatility:  11.0% ann
+
+DAILY PRICE SERIES (for Faber SMAs)
+----------------------------------------
+  Synthetic (^TNX): 1970-01-05 to 2002-07-29 (8131 days)
+  IEF (scaled):     2002-07-30 to 2026-04-02 (5958 days)
+  Combined:         1970-01-05 to 2026-04-02 (14089 days)
+  Splice level:     1471.4 (synthetic) = 40.82 (IEF raw)
+
+VALIDATION — ^TNX vs IEF during overlap (2002-2026)
+----------------------------------------
+  Overlap:         2002-08 to 2026-04 (285 months)
+  Correlation:     0.9892
+  Beta:            1.3215
+  R²:              0.9785
+  ^TNX ann return: 3.15%
+  IEF ann return:  3.75%
+  Return diff:     -0.61% ann
+  Tracking error:  2.51% ann
+  PASS:            YES (target: >0.95)
+
+OUTPUT FILES
+----------------------------------------
+  Monthly returns: data/macro/roth_asset_returns_5asset.parquet
+    Columns:       ['IVV', 'QQQ', 'VXUS', 'VGLT', 'IAU', 'DBC', 'VNQ', 'cash', 'TSY']
+    TSY coverage:  674 months (first: 1970-02)
+    Pre-ETF (^TNX): 390 months
+    ETF era (IEF):  285 months
+  Daily prices:    data/macro/treasury_daily_prices.parquet
+    Coverage:      1970-01-05 to 2026-04-02
+
+READY FOR 5-ASSET BACKTEST: YES

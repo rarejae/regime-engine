@@ -19,7 +19,7 @@ from regime.faber_filter import compute_trend_signals, apply_faber_to_baseline, 
 from regime.run_daily_backtest import fetch_daily_etf_returns
 
 logging.basicConfig(level=logging.WARNING)
-OUTPUT = Path("regime/output"); OUTPUT.mkdir(parents=True, exist_ok=True)
+OUTPUT = Path("experiments/signal_development/output"); OUTPUT.mkdir(parents=True, exist_ok=True)
 TC = 0.0010
 
 BASELINE = {"IVV": 0.45, "QQQ": 0.25, "VGLT": 0.05, "IAU": 0.10, "DBC": 0.05, "cash": 0.10}

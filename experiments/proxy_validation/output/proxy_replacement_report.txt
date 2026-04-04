@@ -1,0 +1,264 @@
+
+================================================================================
+IVV — S&P 500
+================================================================================
+
+Current: SPASTT01USM661N (OECD US Share Prices)
+  Full history start: 1957-01
+  Overlap with ETF:   2000-06 to 2026-02 (309 months)
+  Correlation:        0.6389    [Poor]
+  Ann. return diff:   -3.41% (proxy understates)    [Poor]
+  Tracking error:     12.14% annualized    [Poor]
+  Max divergence:     13.60% (2009-03)
+  ── Rating:          POOR
+
+Candidate 1: ^GSPC (yfinance daily → monthly close)
+  Available: YES — 1927-12-30 to 2026-04-01
+  Full history start: 1927-12
+  Overlap with ETF:   2000-06 to 2026-04 (311 months)
+  Correlation:        0.9953    [Good]
+  Ann. return diff:   -1.80% (proxy understates)    [Acceptable]
+  Tracking error:     1.47% annualized    [Good]
+  Max divergence:     1.50% (2009-04)
+  ── Rating:          ACCEPTABLE
+
+Candidate 2: ^SP500TR (yfinance S&P 500 Total Return)
+  Available: YES — 1988-01-04 to 2026-04-01
+  Full history start: 1988-01
+  Overlap with ETF:   2000-06 to 2026-04 (311 months)
+  Correlation:        0.9951    [Good]
+  Ann. return diff:   0.05% (proxy overstates)    [Good]
+  Tracking error:     1.50% annualized    [Good]
+  Max divergence:     1.47% (2009-03)
+  ── Rating:          GOOD
+
+Candidate 3: ^GSPC + 1.8% annualized dividend yield (constant approx)
+  Full history start: 1927-12
+  Overlap with ETF:   2000-06 to 2026-04 (311 months)
+  Correlation:        0.9953    [Good]
+  Ann. return diff:   -0.00% (proxy understates)    [Good]
+  Tracking error:     1.47% annualized    [Good]
+  Max divergence:     1.40% (2009-03)
+  ── Rating:          GOOD
+
+Candidate 4: WILL5000INDFC — NOT AVAILABLE or too short
+
+
+================================================================================
+VGLT — Long-Term Treasuries
+================================================================================
+
+Current: GS10 with duration=17, coupon=GS10/1200
+  Full history start: 1960-01
+  Overlap with ETF:   2010-02 to 2026-03 (194 months)
+  Correlation:        0.7342    [Poor]
+  Ann. return diff:   -1.31% (proxy understates)    [Acceptable]
+  Tracking error:     8.87% annualized    [Acceptable]
+  Max divergence:     7.41% (2022-12)
+  ── Rating:          POOR
+
+Candidate 1: GS30 (30Y yield) with duration=18
+  Available: YES — 1977-02-01 to 2026-03-01
+  Full history start: 1977-02
+  Overlap with ETF:   2010-02 to 2026-03 (194 months)
+  Correlation:        0.7513    [Poor]
+  Ann. return diff:   -0.41% (proxy understates)    [Good]
+  Tracking error:     8.48% annualized    [Acceptable]
+  Max divergence:     8.95% (2022-12)
+  ── Rating:          POOR
+
+Candidate 2: GS30 (30Y yield) with duration=20
+  Full history start: 1977-02
+  Overlap with ETF:   2010-02 to 2026-03 (194 months)
+  Correlation:        0.7512    [Poor]
+  Ann. return diff:   -0.44% (proxy understates)    [Good]
+  Tracking error:     8.85% annualized    [Acceptable]
+  Max divergence:     9.63% (2022-12)
+  ── Rating:          POOR
+
+Candidate 3: GS20 (20Y yield) with duration=15
+  Available: YES — 1993-10-01 to 2026-03-01
+  Full history start: 1993-10
+  Overlap with ETF:   2010-02 to 2026-03 (194 months)
+  Correlation:        0.7513    [Poor]
+  Ann. return diff:   -0.59% (proxy understates)    [Good]
+  Tracking error:     8.30% annualized    [Acceptable]
+  Max divergence:     8.09% (2022-12)
+  ── Rating:          POOR
+
+Candidate 4: GS10 with optimized duration=9.0
+  Full history start: 1960-01
+  Overlap with ETF:   2010-02 to 2026-03 (194 months)
+  Correlation:        0.7343    [Poor]
+  Ann. return diff:   -1.05% (proxy understates)    [Acceptable]
+  Tracking error:     9.03% annualized    [Acceptable]
+  Max divergence:     6.92% (2011-09)
+  ── Rating:          POOR
+
+Candidate 5: GS30 with optimized duration=10.0
+  Full history start: 1977-02
+  Overlap with ETF:   2010-02 to 2026-03 (194 months)
+  Correlation:        0.7520    [Poor]
+  Ann. return diff:   -0.29% (proxy understates)    [Good]
+  Tracking error:     8.84% annualized    [Acceptable]
+  Max divergence:     7.35% (2023-01)
+  ── Rating:          POOR
+
+Candidate 6: Splice GS10(dur=22) pre-1977 → GS30(dur=18) post
+  Full history: 1960-01-01 to present (spliced at 1977-03-01)
+  Full history start: 1960-01
+  Overlap with ETF:   2010-02 to 2026-03 (194 months)
+  Correlation:        0.7513    [Poor]
+  Ann. return diff:   -0.41% (proxy understates)    [Good]
+  Tracking error:     8.48% annualized    [Acceptable]
+  Max divergence:     8.95% (2022-12)
+  ── Rating:          POOR
+
+
+================================================================================
+IAU — Gold
+================================================================================
+
+Current: WPU1017 (PPI Precious Metals & Metal Products)
+  Full history start: 1960-01
+  Overlap with ETF:   2004-12 to 2026-02 (255 months)
+  Correlation:        -0.0602    [Poor]
+  Ann. return diff:   -8.75% (proxy understates)    [Poor]
+  Tracking error:     21.29% annualized    [Poor]
+  Max divergence:     20.27% (2008-11)
+  ── Rating:          POOR
+
+Candidate 1: GOLDAMGBD228NLBM — NOT AVAILABLE
+
+Candidate 2: GOLDPMGBD228NLBM — NOT AVAILABLE
+
+Candidate 3: GC=F (Gold Futures, yfinance)
+  Available: YES — 2000-08-30 to 2026-04-01
+  Full history start: 2000-08
+  Overlap with ETF:   2004-12 to 2026-04 (257 months)
+  Correlation:        0.9933    [Good]
+  Ann. return diff:   0.43% (proxy overstates)    [Good]
+  Tracking error:     1.97% annualized    [Good]
+  Max divergence:     3.30% (2026-01)
+  ── Rating:          GOOD
+
+Candidate 4: PCU21222122221 — NOT AVAILABLE or too short
+
+Candidate 5: WPU10170601 — NOT AVAILABLE or too short
+
+
+================================================================================
+DBC — Commodities
+================================================================================
+
+Current: PPIACO (PPI All Commodities)
+  Full history start: 1960-01
+  Overlap with ETF:   2006-03 to 2026-02 (240 months)
+  Correlation:        0.4713    [Poor]
+  Ann. return diff:   -0.70% (proxy understates)    [Good]
+  Tracking error:     17.04% annualized    [Poor]
+  Max divergence:     19.75% (2008-10)
+  ── Rating:          POOR
+
+Candidate 1: PPIENG (PPI Energy, FRED)
+  Available: YES — 1960-01-01 to 2026-02-01
+  Full history start: 1960-01
+  Overlap with ETF:   2006-03 to 2026-02 (240 months)
+  Correlation:        0.4361    [Poor]
+  Ann. return diff:   -0.56% (proxy understates)    [Good]
+  Tracking error:     18.13% annualized    [Poor]
+  Max divergence:     17.50% (2022-06)
+  ── Rating:          POOR
+
+Candidate 2: Oil-weighted composite (oil=61%, copper=17%, farm=22%)
+  Available: YES — 2000-09 to present
+  Full history start: 2000-09
+  Overlap with ETF:   2006-03 to 2015-12 (118 months)
+  Correlation:        0.6912    [Poor]
+  Ann. return diff:   4.18% (proxy overstates)    [Poor]
+  Tracking error:     16.69% annualized    [Poor]
+  Max divergence:     15.35% (2008-12)
+  ── Rating:          POOR
+
+Candidate 3: CL=F (Crude Oil Futures, yfinance)
+  Available: YES — 2000-08-23 to 2026-04-01
+  Full history start: 2000-08
+  Overlap with ETF:   2006-03 to 2026-04 (242 months)
+  Correlation:        0.7841    [Poor]
+  Ann. return diff:   6.16% (proxy overstates)    [Poor]
+  Tracking error:     28.00% annualized    [Poor]
+  Max divergence:     80.30% (2020-05)
+  ── Rating:          POOR
+
+Candidate 4: WTISPLC (WTI Spot, FRED)
+  Available: YES — 1960-01-01 to 2026-03-01
+  Full history start: 1960-01
+  Overlap with ETF:   2006-03 to 2026-03 (241 months)
+  Correlation:        0.6001    [Poor]
+  Ann. return diff:   4.76% (proxy overstates)    [Poor]
+  Tracking error:     30.02% annualized    [Poor]
+  Max divergence:     64.49% (2020-05)
+  ── Rating:          POOR
+
+Candidate 5: PPIFCF (PPI Farm Products, FRED)
+  Available: YES — 1960-01-01 to 2015-12-01
+  Full history start: 1960-01
+  Overlap with ETF:   2006-03 to 2015-12 (118 months)
+  Correlation:        0.2045    [Poor]
+  Ann. return diff:   5.86% (proxy overstates)    [Poor]
+  Tracking error:     20.04% annualized    [Poor]
+  Max divergence:     25.19% (2008-10)
+  ── Rating:          POOR
+
+Candidate 6: DCOILWTICO (Daily WTI, FRED)
+  Available: YES — 1986-01-02 to 2026-03-30
+  Full history start: 1986-01
+  Overlap with ETF:   2006-03 to 2026-03 (241 months)
+  Correlation:        0.7865    [Poor]
+  Ann. return diff:   6.48% (proxy overstates)    [Poor]
+  Tracking error:     28.15% annualized    [Poor]
+  Max divergence:     76.90% (2020-05)
+  ── Rating:          POOR
+
+
+
+================================================================================
+  FINAL RECOMMENDATIONS
+================================================================================
+
+Asset                     Current Proxy   Corr                           New Proxy   Corr  Improvement
+-------- ------------------------------ ------ ----------------------------------- ------ ------------
+IVV           SPASTT01USM661N (current)  0.639                               ^GSPC  0.995 +0.356
+VGLT              GS10 dur=17 (current)  0.734           GS30 dur=10.0 (optimized)  0.752 +0.018
+IAU                   WPU1017 (current) -0.060                                GC=F  0.993 +1.054
+DBC                    PPIACO (current)  0.471                          DCOILWTICO  0.786 +0.315
+
+
+History coverage with recommended proxies:
+  IVV: ^GSPC — overlap tested 2000-06 to 2026-04
+  VGLT: GS30 dur=10.0 (optimized) — overlap tested 2010-02 to 2026-03
+  IAU: GC=F — overlap tested 2004-12 to 2026-04
+  DBC: DCOILWTICO — overlap tested 2006-03 to 2026-03
+
+
+  IVV: REPLACE with ^GSPC
+    Correlation: 0.639 → 0.995
+    Tracking error: 1.5% ann.
+    Rating: Acceptable
+
+  VGLT: REPLACE with GS30 dur=10.0 (optimized)
+    Correlation: 0.734 → 0.752
+    Tracking error: 8.8% ann.
+    Rating: Poor
+    ⚠ Still rated Poor — consider paid data (Bloomberg, GSCI) or shorter lookback
+
+  IAU: REPLACE with GC=F
+    Correlation: -0.060 → 0.993
+    Tracking error: 2.0% ann.
+    Rating: Good
+
+  DBC: REPLACE with DCOILWTICO
+    Correlation: 0.471 → 0.786
+    Tracking error: 28.2% ann.
+    Rating: Poor
+    ⚠ Still rated Poor — consider paid data (Bloomberg, GSCI) or shorter lookback

@@ -1,0 +1,385 @@
+================================================================================
+  COMPREHENSIVE PROXY QUALITY AUDIT
+================================================================================
+
+
+IVV — ^GSPC
+-----------------------------------------------------------------------------
+Overlap: 2000-06 to 2026-04 (311 months)
+
+CORE METRICS
+  Correlation:        0.9953
+  Beta:               0.9844
+  R²:                 0.9906
+  Alpha (ann):        -1.66%
+  Mean ret diff:      -1.80% annualized
+  Tracking error:     1.47% annualized
+
+CRISIS ANALYSIS
+  Period             ETF Ret  Proxy Ret    Corr    Beta  MaxDiv
+  ---------------- --------- ---------- ------- ------- -------
+  GFC                 -37.4%     -37.8%   0.998   1.086   +1.3%
+  COVID                -9.4%      -9.7%   1.000   0.967   +0.7%
+  2022 Bear           -17.5%     -18.8%   0.999   0.969   +0.7%
+
+  Crisis avg corr: 0.999
+  Crisis avg beta: 1.007
+
+QUALITY CHECKLIST
+  [✓] Correlation > 0.90       0.9953
+  [✓] Beta 0.85-1.15           0.9844
+  [✓] |Ret diff| < 2%          -1.80%
+  [✓] Track err < 8%           1.47%
+  [✓] Crisis corr > 0.85       0.9992
+
+  COMPOSITE: PASS (5/5 criteria met)
+
+
+IVV — ^GSPC+1.8%div
+-----------------------------------------------------------------------------
+Overlap: 2000-06 to 2026-04 (311 months)
+
+CORE METRICS
+  Correlation:        0.9953
+  Beta:               0.9844
+  R²:                 0.9906
+  Alpha (ann):        0.14%
+  Mean ret diff:      -0.00% annualized
+  Tracking error:     1.47% annualized
+
+CRISIS ANALYSIS
+  Period             ETF Ret  Proxy Ret    Corr    Beta  MaxDiv
+  ---------------- --------- ---------- ------- ------- -------
+  GFC                 -37.4%     -37.1%   0.998   1.086   +1.4%
+  COVID                -9.4%      -9.3%   1.000   0.967   +0.5%
+  2022 Bear           -17.5%     -17.5%   0.999   0.969   +0.5%
+
+  Crisis avg corr: 0.999
+  Crisis avg beta: 1.007
+
+QUALITY CHECKLIST
+  [✓] Correlation > 0.90       0.9953
+  [✓] Beta 0.85-1.15           0.9844
+  [✓] |Ret diff| < 2%          -0.00%
+  [✓] Track err < 8%           1.47%
+  [✓] Crisis corr > 0.85       0.9992
+
+  COMPOSITE: PASS (5/5 criteria met)
+
+
+QQQ — ^NDX
+-----------------------------------------------------------------------------
+Overlap: 1999-04 to 2026-04 (325 months)
+
+CORE METRICS
+  Correlation:        0.9990
+  Beta:               0.9983
+  R²:                 0.9979
+  Alpha (ann):        -0.53%
+  Mean ret diff:      -0.55% annualized
+  Tracking error:     1.05% annualized
+
+CRISIS ANALYSIS
+  Period             ETF Ret  Proxy Ret    Corr    Beta  MaxDiv
+  ---------------- --------- ---------- ------- ------- -------
+  GFC                 -34.1%     -33.9%   0.998   1.013   +0.9%
+  COVID                +0.1%      +0.1%   1.000   1.000   +0.2%
+  2022 Bear           -29.7%     -30.1%   1.000   0.983   +0.3%
+
+  Crisis avg corr: 0.999
+  Crisis avg beta: 0.999
+
+QUALITY CHECKLIST
+  [✓] Correlation > 0.90       0.9990
+  [✓] Beta 0.85-1.15           0.9983
+  [✓] |Ret diff| < 2%          -0.55%
+  [✓] Track err < 8%           1.05%
+  [✓] Crisis corr > 0.85       0.9994
+
+  COMPOSITE: PASS (5/5 criteria met)
+
+
+VGLT — GS10 dur=17
+-----------------------------------------------------------------------------
+Overlap: 2010-02 to 2026-03 (194 months)
+
+CORE METRICS
+  Correlation:        0.7342
+  Beta:               0.6845
+  R²:                 0.5390
+  Alpha (ann):        -0.24%
+  Mean ret diff:      -1.31% annualized
+  Tracking error:     8.87% annualized
+
+CRISIS ANALYSIS
+  Period             ETF Ret  Proxy Ret    Corr    Beta  MaxDiv
+  ---------------- --------- ---------- ------- ------- -------
+  GFC                      —          —       —       —       —
+  COVID               +14.4%     +20.1%   0.606   0.750   +4.4%
+  2022 Bear           -32.2%     -34.6%   0.871   1.163   +4.7%
+
+  Crisis avg corr: 0.738
+  Crisis avg beta: 0.957
+
+QUALITY CHECKLIST
+  [✗] Correlation > 0.90       0.7342
+  [✗] Beta 0.85-1.15           0.6845
+  [✓] |Ret diff| < 2%          -1.31%
+  [✗] Track err < 8%           8.87%
+  [✗] Crisis corr > 0.85       0.7380
+
+  COMPOSITE: FAIL (1/5 criteria met)
+
+
+IAU — GC=F
+-----------------------------------------------------------------------------
+Overlap: 2004-12 to 2026-04 (257 months)
+
+CORE METRICS
+  Correlation:        0.9935
+  Beta:               0.9913
+  R²:                 0.9870
+  Alpha (ann):        0.46%
+  Mean ret diff:      0.36% annualized
+  Tracking error:     1.95% annualized
+
+CRISIS ANALYSIS
+  Period             ETF Ret  Proxy Ret    Corr    Beta  MaxDiv
+  ---------------- --------- ---------- ------- ------- -------
+  GFC                 +10.5%     +11.3%   0.998   1.096   +1.9%
+  COVID                +6.3%      +6.4%   0.963   0.836   +1.5%
+  2022 Bear           -11.1%     -10.5%   0.985   1.015   +1.3%
+
+  Crisis avg corr: 0.982
+  Crisis avg beta: 0.982
+
+QUALITY CHECKLIST
+  [✓] Correlation > 0.90       0.9935
+  [✓] Beta 0.85-1.15           0.9913
+  [✓] |Ret diff| < 2%          0.36%
+  [✓] Track err < 8%           1.95%
+  [✓] Crisis corr > 0.85       0.9819
+
+  COMPOSITE: PASS (5/5 criteria met)
+
+
+IAU — WPU1017
+-----------------------------------------------------------------------------
+Overlap: 2004-12 to 2026-02 (255 months)
+
+CORE METRICS
+  Correlation:        -0.0602
+  Beta:               -0.0426
+  R²:                 0.0036
+  Alpha (ann):        4.41%
+  Mean ret diff:      -8.75% annualized
+  Tracking error:     21.29% annualized
+
+CRISIS ANALYSIS
+  Period             ETF Ret  Proxy Ret    Corr    Beta  MaxDiv
+  ---------------- --------- ---------- ------- ------- -------
+  GFC                 +10.5%     -34.9%  -0.094  -0.034  +20.3%
+  COVID                +6.3%      +0.1%  -0.864  -0.135   +7.9%
+  2022 Bear           -11.1%     -25.0%  -0.512  -1.027  +15.5%
+
+  Crisis avg corr: -0.490
+  Crisis avg beta: -0.399
+
+QUALITY CHECKLIST
+  [✗] Correlation > 0.90       -0.0602
+  [✗] Beta 0.85-1.15           -0.0426
+  [✗] |Ret diff| < 2%          -8.75%
+  [✗] Track err < 8%           21.29%
+  [✗] Crisis corr > 0.85       -0.4902
+
+  COMPOSITE: FAIL (0/5 criteria met)
+
+
+DBC — PPIACO
+-----------------------------------------------------------------------------
+Overlap: 2006-03 to 2026-02 (240 months)
+
+CORE METRICS
+  Correlation:        0.4713
+  Beta:               0.1089
+  R²:                 0.2222
+  Alpha (ann):        2.26%
+  Mean ret diff:      -0.70% annualized
+  Tracking error:     17.04% annualized
+
+CRISIS ANALYSIS
+  Period             ETF Ret  Proxy Ret    Corr    Beta  MaxDiv
+  ---------------- --------- ---------- ------- ------- -------
+  GFC                 -46.2%     -15.5%   0.751   0.181  +19.7%
+  COVID               -25.2%      -6.9%  -0.544  -0.102  +15.5%
+  2022 Bear           +20.9%      +9.8%   0.446   0.155  +10.1%
+
+  Crisis avg corr: 0.218
+  Crisis avg beta: 0.078
+
+QUALITY CHECKLIST
+  [✗] Correlation > 0.90       0.4713
+  [✗] Beta 0.85-1.15           0.1089
+  [✓] |Ret diff| < 2%          -0.70%
+  [✗] Track err < 8%           17.04%
+  [✗] Crisis corr > 0.85       0.2176
+
+  COMPOSITE: FAIL (1/5 criteria met)
+
+
+DBC — DCOILWTICO
+-----------------------------------------------------------------------------
+Overlap: 2006-03 to 2026-03 (241 months)
+
+CORE METRICS
+  Correlation:        0.7865
+  Beta:               1.6840
+  R²:                 0.6185
+  Alpha (ann):        3.71%
+  Mean ret diff:      6.48% annualized
+  Tracking error:     28.15% annualized
+
+CRISIS ANALYSIS
+  Period             ETF Ret  Proxy Ret    Corr    Beta  MaxDiv
+  ---------------- --------- ---------- ------- ------- -------
+  GFC                 -46.2%     -57.0%   0.854   1.423  +14.5%
+  COVID               -25.2%     -62.7%   0.994   3.485  +36.9%
+  2022 Bear           +20.9%     +14.9%   0.845   1.367  +10.5%
+
+  Crisis avg corr: 0.898
+  Crisis avg beta: 2.092
+
+QUALITY CHECKLIST
+  [✗] Correlation > 0.90       0.7865
+  [✗] Beta 0.85-1.15           1.6840
+  [✗] |Ret diff| < 2%          6.48%
+  [✗] Track err < 8%           28.15%
+  [✓] Crisis corr > 0.85       0.8977
+
+  COMPOSITE: FAIL (1/5 criteria met)
+
+
+================================================================================
+  SUMMARY TABLE
+================================================================================
+
+  Asset  Proxy              Corr   Beta     R²  RetDiff     TE  CrCorr  PASS?
+  ------ ---------------- ------ ------ ------ -------- ------ ------- ------
+  IVV    ^GSPC             0.995  0.984  0.991   -1.80%   1.5%   0.999   PASS
+  IVV    ^GSPC+1.8%div     0.995  0.984  0.991   -0.00%   1.5%   0.999   PASS
+  QQQ    ^NDX              0.999  0.998  0.998   -0.55%   1.0%   0.999   PASS
+  VGLT   GS10 dur=17       0.734  0.685  0.539   -1.31%   8.9%   0.738   FAIL
+  IAU    GC=F              0.993  0.991  0.987   +0.36%   1.9%   0.982   PASS
+  IAU    WPU1017          -0.060 -0.043  0.004   -8.75%  21.3%  -0.490   FAIL
+  DBC    PPIACO            0.471  0.109  0.222   -0.70%  17.0%   0.218   FAIL
+  DBC    DCOILWTICO        0.786  1.684  0.619   +6.48%  28.2%   0.898   FAIL
+
+
+================================================================================
+  RECOMMENDATIONS
+================================================================================
+
+PROXIES THAT PASS (use these):
+  - IVV ← ^GSPC (corr=0.995, β=0.984, TE=1.5%)
+  - IVV ← ^GSPC+1.8%div (corr=0.995, β=0.984, TE=1.5%)
+  - QQQ ← ^NDX (corr=0.999, β=0.998, TE=1.0%)
+  - IAU ← GC=F (corr=0.993, β=0.991, TE=1.9%)
+
+PROXIES THAT FAIL (need replacement or shorter lookback):
+  - VGLT ← GS10 dur=17: low corr (0.734); beta out of range (0.685); TE 8.9%; crisis corr 0.738
+  - IAU ← WPU1017: low corr (-0.060); beta out of range (-0.043); ret diff -8.8%; TE 21.3%; crisis corr -0.490
+  - DBC ← PPIACO: low corr (0.471); beta out of range (0.109); TE 17.0%; crisis corr 0.218
+  - DBC ← DCOILWTICO: low corr (0.786); beta out of range (1.684); ret diff +6.5%; TE 28.2%
+
+ASSETS WITH NO GOOD PROXY:
+  - DBC: best available is DCOILWTICO (corr=0.786)
+    Recommendation: shorten lookback to ETF-only era or accept proxy noise
+  - VGLT: best available is GS10 dur=17 (corr=0.734)
+    Recommendation: shorten lookback to ETF-only era or accept proxy noise
+
+
+================================================================================
+  IMPACT ON HARVEY SIMILARITY
+================================================================================
+
+  With recommended proxy changes:
+    DBC: DCOILWTICO (FAIL) — proxy needed before 2006-02
+    IAU: GC=F (PASS) — proxy needed before 2004-11
+    IVV: ^GSPC (PASS) — proxy needed before 2000-05
+    QQQ: ^NDX (PASS) — proxy needed before 1999-03
+    VGLT: GS10 dur=17 (FAIL) — proxy needed before 2009-11
+
+  Earliest date with ALL assets having ETF data: 2009-11
+  Recommended Harvey lookback start: 1999-03 (earliest ETF)
+  Current backtest: 468 months (1985-2024)
+  ETF-only window:  180 months (2009-2024)
+
+
+================================================================================
+  PHASE 2: BACKTEST WITH PROXY/ETF ERA ATTRIBUTION
+================================================================================
+
+
+PROXY vs ETF ERA ATTRIBUTION
+==================================================
+
+  Analog composition across backtest:
+    Total similar months used:      27936
+    From proxy era (pre-ETF):       24822 (88.9%)
+    From ETF era:                    3114 (11.1%)
+
+  Backtest months by dominant analog source:
+    Months where >50% analogs from proxy era:  477
+    Months where >50% analogs from ETF era:      3
+
+
+PERFORMANCE SPLIT
+----------------------------------------------------------------------
+
+  Proxy-Dominated (477 months)
+    Ann. Return:    11.46%
+    Volatility:     9.42%
+    Sharpe:         1.217
+
+  ETF-Dominated: insufficient data (3 months)
+
+  Full System (480 months)
+    Ann. Return:    11.56%
+    Volatility:     9.41%
+    Sharpe:         1.228
+
+
+EXPECTED RETURN COMPARISON
+--------------------------------------------------
+  Mean Harvey ER (proxy-era analogs):  0.626%
+  Mean Harvey ER (ETF-era analogs):    0.940%
+  Correlation of ERs:                  0.146
+  Mean absolute difference:            0.760%
+
+  Interpretation: WEAK agreement between eras (r=0.15).
+  Proxy-era analogs produce materially different signals than ETF-era ones.
+
+
+ALLOCATION DECISION IMPACT
+--------------------------------------------------
+  Different top asset:                         96 months (20.0%)
+  Materially different weights (>10% delta):   135 months (28.1%)
+
+
+PROXY FRACTION OVER TIME (5-year rolling)
+--------------------------------------------------
+  1990: 100.0% ████████████████████████████████████████
+  1995: 100.0% ████████████████████████████████████████
+  2000: 100.0% ████████████████████████████████████████
+  2005: 100.0% ████████████████████████████████████████
+  2010: 100.0% ████████████████████████████████████████
+  2015:  98.0% ███████████████████████████████████████
+  2020:  69.1% ███████████████████████████
+
+
+RECOMMENDATION
+==================================================
+  Proxy data still heavily influences allocation decisions.
+  477 of 480 months (99%) are proxy-dominated.
+  But top-asset agreement is high — proxy noise may be acceptable.
+  → Monitor but no urgent change needed.

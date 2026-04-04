@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
 
 ROTH_PARQUET = Path("data/macro/roth_asset_returns.parquet")
-OUTPUT = Path("regime/output")
+OUTPUT = Path("experiments/signal_development/output")
 TC = 0.0010  # 10bps round-trip
 
 ETF_NAMES = ["IVV", "QQQ", "VXUS", "VGLT", "IAU", "DBC", "VNQ", "cash"]

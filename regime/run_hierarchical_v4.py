@@ -21,7 +21,7 @@ from regime.carry_value import compute_carry, compute_value
 from regime.run_daily_backtest import fetch_daily_etf_returns
 
 logging.basicConfig(level=logging.WARNING)
-OUTPUT = Path("regime/output"); OUTPUT.mkdir(parents=True, exist_ok=True)
+OUTPUT = Path("experiments/signal_development/output"); OUTPUT.mkdir(parents=True, exist_ok=True)
 TC = 0.0010; UNIVERSE = list(BASELINE.keys())
 config = RegimeConfig()
 

@@ -17,7 +17,7 @@ from regime.hmm_trend import (
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(message)s")
 
-OUTPUT = Path("regime/output")
+OUTPUT = Path("experiments/signal_development/output")
 OUTPUT.mkdir(parents=True, exist_ok=True)
 
 print("=" * 80)

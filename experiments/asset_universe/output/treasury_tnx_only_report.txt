@@ -1,0 +1,49 @@
+================================================================================
+  TREASURY DATA PIPELINE — ^TNX ONLY
+================================================================================
+
+DATA SOURCE
+----------------------------------------
+  Instrument:     10Y Treasury
+  Source:          ^TNX (yfinance)
+  Method:          Duration model (dur=10.0)
+  Raw daily data:  1970-01-02 to 2026-04-02 (14084 obs)
+  Monthly obs:     676
+  Gaps:            0
+
+RETURN SERIES
+----------------------------------------
+  Monthly returns: 675 observations
+  Coverage:        1970-02 to 2026-04
+  Mean return:     0.546%/mo (6.55% ann)
+  Volatility:      11.7% ann
+  Min month:       -15.0%
+  Max month:       19.9%
+
+SYNTHETIC PRICE SERIES
+----------------------------------------
+  Start price:     100
+  End price:       2705.5
+  For Faber SMAs:  YES
+  Daily prices:    1970-01-05 to 2026-04-02 (14083 obs)
+
+VALIDATION vs IEF (2002-2026)
+----------------------------------------
+  Overlap:         2002-08 to 2026-04 (285 months)
+  Correlation:     0.9892
+  Beta:            1.3215
+  R²:              0.9785
+  ^TNX ann return: 3.15%
+  IEF ann return:  3.75%
+  Return diff:     -0.61% ann
+  Tracking error:  2.51% ann
+  PASS:            YES (target: >0.95)
+
+OUTPUT FILES
+----------------------------------------
+  Monthly returns: data/macro/roth_asset_returns_5asset.parquet
+    TSY coverage:  674 months (first: 1970-02)
+  Daily prices:    data/macro/treasury_daily_prices.parquet
+    Coverage:      1970-01-05 to 2026-04-02
+
+READY FOR 5-ASSET BACKTEST: YES

@@ -1,0 +1,99 @@
+================================================================================
+  COMPONENT VALUE-ADD: KRITZMAN RELEVANCE vs HARVEY-MULLINER
+================================================================================
+
+Backtest: 2002-01-01 to 2026-02-01 (290 months)
+Rebalance: Monthly | Leverage: None (1x) | Faber: 6/10/12 SMA
+Universe: IVV, QQQ, VGLT, IAU, DBC, cash
+
+
+PERFORMANCE (monthly, 1x, behind Faber gate)
+-------------------------------------------------------------------------------------
+  Strategy               Return     Vol   Sharpe  Sortino    MaxDD   Terminal
+  -------------------- -------- ------- -------- -------- -------- ----------
+  Faber-Only              8.6%   7.4%    1.164    1.788   -9.6% $     7.37
+  Harvey                  9.4%   9.5%    0.982    1.493  -17.8% $     8.55
+  Kritzman-InvVol         9.6%   9.7%    0.994    1.490  -19.2% $     9.07
+  Kritzman-MV             9.7%   9.5%    1.017    1.565  -17.2% $     9.27
+  Kritzman-RP            10.2%   9.0%    1.134    1.912  -11.7% $    10.51
+  IVV B&H                10.4%  14.9%    0.699    0.943  -50.8% $     9.42
+  60/40                   8.2%   9.9%    0.823    1.110  -25.7% $     6.37
+
+
+VALUE-ADD vs HARVEY-MULLINER
+------------------------------------------------------------
+  Strategy                ΔSharpe    ΔReturn     ΔMaxDD
+  -------------------- ---------- ---------- ----------
+  Faber-Only               +0.182      -0.8%      +8.2%
+  Kritzman-InvVol          +0.013      +0.3%      -1.4%
+  Kritzman-MV              +0.035      +0.3%      +0.7%
+  Kritzman-RP              +0.152      +0.8%      +6.1%
+  IVV B&H                  -0.283      +1.1%     -32.9%
+  60/40                    -0.159      -1.2%      -7.9%
+
+
+CRISIS ANALYSIS
+----------------------------------------------------------------------
+
+  GFC:
+  Strategy                 Return
+  -------------------- ----------
+  Faber-Only               +1.1%
+  Harvey                   +0.2%
+  Kritzman-InvVol          -3.7%
+  Kritzman-MV              +2.6%
+  Kritzman-RP              +5.4%
+  IVV B&H                 -37.4%
+  60/40                   -17.9%
+
+  COVID:
+  Strategy                 Return
+  -------------------- ----------
+  Faber-Only               -5.8%
+  Harvey                   -5.4%
+  Kritzman-InvVol          -4.1%
+  Kritzman-MV              -3.3%
+  Kritzman-RP              -3.3%
+  IVV B&H                  -9.4%
+  60/40                    +0.4%
+
+  2022 Bear:
+  Strategy                 Return
+  -------------------- ----------
+  Faber-Only               -6.1%
+  Harvey                   -8.0%
+  Kritzman-InvVol          -7.0%
+  Kritzman-MV              -7.3%
+  Kritzman-RP              -7.8%
+  IVV B&H                 -17.5%
+  60/40                   -23.4%
+
+
+MONTHLY RETURN CORRELATION
+--------------------------------------------------
+                          Faber-Only        Harvey  Kritzman-Inv   Kritzman-MV   Kritzman-RP       IVV B&H         60/40
+  Faber-Only                   1.000         0.911         0.892         0.906         0.935         0.672         0.603
+  Harvey                       0.911         1.000         0.985         0.984         0.979         0.681         0.633
+  Kritzman-InvVol              0.892         0.985         1.000         0.983         0.974         0.673         0.616
+  Kritzman-MV                  0.906         0.984         0.983         1.000         0.985         0.657         0.610
+  Kritzman-RP                  0.935         0.979         0.974         0.985         1.000         0.660         0.626
+  IVV B&H                      0.672         0.681         0.673         0.657         0.660         1.000         0.852
+  60/40                        0.603         0.633         0.616         0.610         0.626         0.852         1.000
+
+
+MACRO ENGINE ALPHA (Sharpe over Faber-only 1.164)
+--------------------------------------------------
+  Harvey               -0.182
+  Kritzman-InvVol      -0.170
+  Kritzman-MV          -0.147
+  Kritzman-RP          -0.030
+
+
+DIAGNOSTICS
+--------------------------------------------------
+  Avg relevant months per period:  98
+  Avg Ω condition number:          12.1
+  Avg conditioned IVV-VGLT corr:   0.156
+  Std conditioned IVV-VGLT corr:   0.136
+  Range:                           [-0.194, 0.487]
+  Avg relevance spread:            5.13

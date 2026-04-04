@@ -19,7 +19,7 @@ from regime.multi_asset import allocate_similarity_weighted
 logging.basicConfig(level=logging.WARNING)
 
 config = RegimeConfig()
-OUTPUT = Path("regime/output")
+OUTPUT = Path("experiments/signal_development/output")
 OUTPUT.mkdir(parents=True, exist_ok=True)
 TC = 0.0010
 

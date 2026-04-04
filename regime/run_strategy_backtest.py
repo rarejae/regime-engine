@@ -28,7 +28,7 @@ from regime.run_daily_backtest import fetch_daily_etf_returns
 logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
 
-OUTPUT = Path("regime/output")
+OUTPUT = Path("experiments/signal_development/output")
 OUTPUT.mkdir(parents=True, exist_ok=True)
 TC = 0.0010
 

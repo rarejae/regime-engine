@@ -21,7 +21,7 @@ from regime.run_daily_backtest import fetch_daily_etf_returns
 from regime.hmm_trend import fetch_daily_data, compute_features, fit_and_predict_rolling, apply_persistence_filter
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(message)s")
-OUTPUT = Path("regime/output"); OUTPUT.mkdir(parents=True, exist_ok=True)
+OUTPUT = Path("experiments/signal_development/output"); OUTPUT.mkdir(parents=True, exist_ok=True)
 TC = 0.0010; UNIVERSE = list(BASELINE.keys())
 config = RegimeConfig()
 
