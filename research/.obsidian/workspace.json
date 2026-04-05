@@ -11,10 +11,14 @@
             "id": "05317534e41b55fb",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "markdown",
+              "state": {
+                "file": "context/KRITZMAN_RESEARCH_FINDINGS.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "KRITZMAN_RESEARCH_FINDINGS"
             }
           }
         ]
@@ -176,9 +180,14 @@
       "bases:Create new base": false
     }
   },
-  "active": "05317534e41b55fb",
+  "active": "d6c362e9e1a46f75",
   "lastOpenFiles": [
+    "experiments/2026-04-04_validation_test.md",
+    "context/KRITZMAN_RESEARCH_FINDINGS.md",
+    "test.md",
     "decisions/reject_conditioned_covariance.md",
+    "templates/experiment_template.md",
+    "README.md",
     "experiments/2026-04-04_faber_only_baseline.md"
   ]
 }
