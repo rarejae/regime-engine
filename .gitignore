@@ -13,3 +13,6 @@ build/
 venv/
 *.log
 .DS_Store
+research/.obsidian/plugins/
+research/.obsidian/community-plugins.json
+research/.smart-env/
