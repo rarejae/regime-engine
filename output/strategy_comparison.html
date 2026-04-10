@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TAA Strategy Comparison Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fff; color: #1a1a1a; padding: 24px; max-width: 1200px; margin: 0 auto; }
+h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+.subtitle { font-size: 13px; color: #666; margin-bottom: 20px; }
+.controls { display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 16px; padding: 16px; background: #f8f8f8; border-radius: 8px; }
+.slider-group { display: flex; flex-direction: column; gap: 4px; min-width: 260px; }
+.slider-group label { font-size: 13px; font-weight: 500; color: #444; }
+.slider-group input[type=range] { width: 100%; accent-color: #1d9e75; }
+.slider-value { font-size: 18px; font-weight: 600; color: #1a1a1a; }
+.toggles { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.toggle-btn { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 14px; border: 1.5px solid #ddd; background: #fff; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.15s; user-select: none; }
+.toggle-btn.active { border-color: currentColor; background: color-mix(in srgb, currentColor 10%, white); }
+.toggle-btn .dot { width: 8px; height: 8px; border-radius: 50%; }
+.chart-wrap { position: relative; height: 500px; margin-bottom: 20px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { text-align: left; padding: 8px 10px; border-bottom: 2px solid #e0e0e0; font-weight: 600; color: #444; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; }
+tbody td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; }
+tbody tr:hover { background: #fafafa; }
+.dot-cell { display: flex; align-items: center; gap: 6px; }
+.dot-sm { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.num { font-variant-numeric: tabular-nums; text-align: right; }
+.pos { color: #1d9e75; }
+.neg { color: #c0392b; }
+</style>
+</head>
+<body>
+
+<h1>TAA Strategy Comparison</h1>
+<p class="subtitle">Simulated portfolio growth 2002-2026 with adjustable starting principal and monthly contributions</p>
+
+<div class="controls">
+  <div class="slider-group">
+    <label>Starting Principal</label>
+    <div class="slider-value" id="principalLabel">$21,000</div>
+    <input type="range" id="principalSlider" min="1000" max="500000" step="1000" value="21000">
+  </div>
+  <div class="slider-group">
+    <label>Monthly Contribution</label>
+    <div class="slider-value" id="contribLabel">$0</div>
+    <input type="range" id="contribSlider" min="0" max="3000" step="50" value="0">
+  </div>
+  <div class="slider-group" style="min-width:400px;">
+    <label>Strategies</label>
+    <div class="toggles" id="toggles"></div>
+  </div>
+</div>
+
+<div class="chart-wrap"><canvas id="chart"></canvas></div>
+<table><thead id="thead"></thead><tbody id="tbody"></tbody></table>
+
+<script>
+const STRATEGIES = [
+  { name: "IVV Buy & Hold",          ar: 0.108, vol: 0.190, sh: 0.570, mdd: -0.552, color: "#888780" },
+  { name: "60/40",                    ar: 0.084, vol: 0.111, sh: 0.752, mdd: -0.299, color: "#b4b2a9" },
+  { name: "Faber-1x Monthly",        ar: 0.082, vol: 0.073, sh: 1.125, mdd: -0.093, color: "#9fe1cb" },
+  { name: "Faber-Sweep-40 Monthly",  ar: 0.104, vol: 0.118, sh: 0.878, mdd: -0.171, color: "#5dcaa5" },
+  { name: "Faber-S40 Daily+CB",      ar: 0.112, vol: 0.117, sh: 0.958, mdd: -0.150, color: "#1d9e75" },
+  { name: "S40-60%",                  ar: 0.124, vol: 0.130, sh: 0.948, mdd: -0.161, color: "#378add" },
+  { name: "S40-80%",                  ar: 0.135, vol: 0.144, sh: 0.938, mdd: -0.171, color: "#185fa5" },
+  { name: "S40-100% (Pedersen)",      ar: 0.147, vol: 0.158, sh: 0.929, mdd: -0.181, color: "#0c447c" },
+  { name: "S40-3x-50%",              ar: 0.149, vol: 0.158, sh: 0.942, mdd: -0.181, color: "#7f77dd" },
+];
+
+// Crisis year overrides: {year: {strategyIndex: annualReturn}}
+// Indices: 0=IVV, 1=60/40, 2=Faber1x, 3=FaberS40Mo, 4=FaberS40DD, 5=S60, 6=S80, 7=S100, 8=3x50
+const CRISIS = {
+  2002: [-0.22, -0.10, 0.02, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03],
+  2008: [-0.37, -0.20, 0.006, 0.006, 0.006, 0.006, 0.006, 0.006, 0.006],
+  2009: [0.26, 0.18, 0.22, 0.22, 0.22, 0.24, 0.26, 0.28, 0.28],
+  2020: [-0.05, -0.03, -0.08, -0.08, -0.08, -0.10, -0.12, -0.14, -0.14],
+  2022: [-0.18, -0.16, -0.09, -0.10, -0.10, -0.11, -0.12, -0.13, -0.13],
+};
+
+const MONTHS = 288; // Jan 2002 - Dec 2025 (24 years)
+const SEED = 42;
+
+// Seeded PRNG (mulberry32)
+function mulberry32(a) {
+  return function() {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+// Box-Muller for normal random
+function normalRandom(rng) {
+  let u1 = rng(), u2 = rng();
+  while (u1 === 0) u1 = rng();
+  return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+}
+
+// Pre-generate monthly returns for each strategy
+function generateMonthlyReturns() {
+  const allReturns = [];
+  for (let si = 0; si < STRATEGIES.length; si++) {
+    const s = STRATEGIES[si];
+    const mMean = s.ar / 12;
+    const mVol = s.vol / Math.sqrt(12);
+    const rng = mulberry32(SEED + si * 1000);
+    const rets = [];
+    for (let m = 0; m < MONTHS; m++) {
+      const year = 2002 + Math.floor(m / 12);
+      const monthInYear = m % 12;
+      if (CRISIS[year]) {
+        // Distribute annual crisis return across 12 months with some shape
+        const annRet = CRISIS[year][si];
+        // Use a simple model: spread evenly but add noise
+        const monthlyBase = annRet / 12;
+        const noise = normalRandom(rng) * mVol * 0.3;
+        rets.push(monthlyBase + noise);
+      } else {
+        rets.push(mMean + normalRandom(rng) * mVol);
+      }
+    }
+    allReturns.push(rets);
+  }
+  return allReturns;
+}
+
+const ALL_RETURNS = generateMonthlyReturns();
+
+// Generate labels
+const labels = [];
+for (let m = 0; m < MONTHS; m++) {
+  const y = 2002 + Math.floor(m / 12);
+  const mo = m % 12;
+  labels.push(new Date(y, mo, 1));
+}
+
+// Visibility state
+const visible = STRATEGIES.map(() => true);
+
+// Compute portfolio values
+function computeValues(principal, monthlyContrib) {
+  const datasets = [];
+  const stats = [];
+  for (let si = 0; si < STRATEGIES.length; si++) {
+    if (!visible[si]) continue;
+    const rets = ALL_RETURNS[si];
+    let balance = principal;
+    const values = [balance];
+    let peak = balance;
+    let maxDD = 0;
+    let totalContrib = principal;
+    for (let m = 0; m < MONTHS; m++) {
+      balance += monthlyContrib;
+      totalContrib += monthlyContrib;
+      balance *= (1 + rets[m]);
+      if (balance > peak) peak = balance;
+      const dd = (balance - peak) / peak;
+      if (dd < maxDD) maxDD = dd;
+      values.push(balance);
+    }
+    const totalGain = balance - totalContrib;
+    const totalGainPct = totalGain / totalContrib;
+    // Approximate annualized from total
+    const years = MONTHS / 12;
+    const annRet = Math.pow(balance / principal, 1 / years) - 1; // ignores contributions for ann return display
+    datasets.push({
+      label: STRATEGIES[si].name,
+      data: values.slice(1), // skip initial
+      borderColor: STRATEGIES[si].color,
+      backgroundColor: STRATEGIES[si].color + "20",
+      borderWidth: 2,
+      pointRadius: 0,
+      tension: 0.1,
+    });
+    stats.push({
+      idx: si,
+      name: STRATEGIES[si].name,
+      color: STRATEGIES[si].color,
+      balance,
+      totalContrib,
+      totalGain,
+      totalGainPct,
+      annRet: STRATEGIES[si].ar,
+      maxDD,
+      sharpe: STRATEGIES[si].sh,
+    });
+  }
+  stats.sort((a, b) => b.balance - a.balance);
+  return { datasets, stats };
+}
+
+// Crisis annotation bands
+const crisisBands = [
+  { start: 0, end: 11, label: "Dot-com", color: "rgba(220,60,60,0.06)" },
+  { start: 72, end: 95, label: "GFC", color: "rgba(220,60,60,0.06)" },
+  { start: 217, end: 220, label: "COVID", color: "rgba(230,150,50,0.08)" },
+  { start: 240, end: 249, label: "2022 Bear", color: "rgba(230,150,50,0.08)" },
+];
+
+const crisisPlugin = {
+  id: 'crisisBands',
+  beforeDraw(chart) {
+    const { ctx, chartArea: { left, right, top, bottom }, scales: { x } } = chart;
+    for (const band of crisisBands) {
+      const x1 = x.getPixelForValue(band.start);
+      const x2 = x.getPixelForValue(band.end);
+      ctx.fillStyle = band.color;
+      ctx.fillRect(x1, top, x2 - x1, bottom - top);
+      ctx.fillStyle = "#999";
+      ctx.font = "10px -apple-system, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(band.label, (x1 + x2) / 2, top + 12);
+    }
+  }
+};
+
+// Format helpers
+const fmtDollar = (v) => {
+  if (Math.abs(v) >= 1e6) return "$" + (v / 1e6).toFixed(2) + "M";
+  return "$" + v.toLocaleString("en-US", { maximumFractionDigits: 0 });
+};
+const fmtPct = (v) => (v * 100).toFixed(1) + "%";
+const fmtPctSigned = (v) => (v >= 0 ? "+" : "") + (v * 100).toFixed(1) + "%";
+
+// Build toggles
+const togglesEl = document.getElementById("toggles");
+STRATEGIES.forEach((s, i) => {
+  const btn = document.createElement("button");
+  btn.className = "toggle-btn active";
+  btn.style.color = s.color;
+  btn.innerHTML = `<span class="dot" style="background:${s.color}"></span>${s.name}`;
+  btn.onclick = () => {
+    visible[i] = !visible[i];
+    btn.classList.toggle("active", visible[i]);
+    update();
+  };
+  togglesEl.appendChild(btn);
+});
+
+// Chart setup
+const ctx = document.getElementById("chart").getContext("2d");
+let chart;
+
+function buildChart(datasets) {
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: "line",
+    data: { labels: labels.map((d, i) => i), datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (items) => {
+              const idx = items[0].dataIndex;
+              const d = labels[idx];
+              return d.toLocaleDateString("en-US", { year: "numeric", month: "short" });
+            },
+            label: (item) => `${item.dataset.label}: ${fmtDollar(item.raw)}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          type: "linear",
+          ticks: {
+            callback: (v) => {
+              if (v % 24 === 0) return 2002 + v / 12;
+              return "";
+            },
+            maxTicksLimit: 13,
+          },
+          grid: { color: "#f0f0f0" },
+        },
+        y: {
+          ticks: { callback: (v) => fmtDollar(v) },
+          grid: { color: "#f0f0f0" },
+        },
+      },
+    },
+    plugins: [crisisPlugin],
+  });
+}
+
+function updateTable(stats) {
+  const thead = document.getElementById("thead");
+  thead.innerHTML = `<tr><th>Strategy</th><th class="num">Final Balance</th><th class="num">Contributions</th><th class="num">Total Gain</th><th class="num">Gain %</th><th class="num">Ann Return</th><th class="num">Max DD</th><th class="num">Sharpe</th></tr>`;
+  const tbody = document.getElementById("tbody");
+  tbody.innerHTML = "";
+  for (const s of stats) {
+    const gainClass = s.totalGain >= 0 ? "pos" : "neg";
+    tbody.innerHTML += `<tr>
+      <td><div class="dot-cell"><span class="dot-sm" style="background:${s.color}"></span>${s.name}</div></td>
+      <td class="num">${fmtDollar(s.balance)}</td>
+      <td class="num">${fmtDollar(s.totalContrib)}</td>
+      <td class="num ${gainClass}">${fmtDollar(s.totalGain)}</td>
+      <td class="num ${gainClass}">${fmtPctSigned(s.totalGainPct)}</td>
+      <td class="num">${fmtPct(s.annRet)}</td>
+      <td class="num neg">${fmtPct(s.maxDD)}</td>
+      <td class="num">${s.sharpe.toFixed(3)}</td>
+    </tr>`;
+  }
+}
+
+function update() {
+  const principal = parseInt(document.getElementById("principalSlider").value);
+  const contrib = parseInt(document.getElementById("contribSlider").value);
+  document.getElementById("principalLabel").textContent = fmtDollar(principal);
+  document.getElementById("contribLabel").textContent = fmtDollar(contrib);
+  const { datasets, stats } = computeValues(principal, contrib);
+  buildChart(datasets);
+  updateTable(stats);
+}
+
+document.getElementById("principalSlider").addEventListener("input", update);
+document.getElementById("contribSlider").addEventListener("input", update);
+
+update();
+</script>
+</body>
+</html>

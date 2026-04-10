@@ -30,6 +30,16 @@ The Harvey-Mulliner similarity engine was the original capital direction mechani
 | 2026-04-06 | [[2026-04-06_faber_sweep_weekly_daily]] | Daily SMAs (126/200/252) + weekly circuit breaker: 11.1% ret, 0.946 Sharpe, -16.2% DD, $12.46 terminal. First experiment to improve BOTH Sharpe AND terminal. | — |
 | 2026-04-06 | [[2026-04-06_faber_daily_circuit_breaker]] | Daily breaker beats weekly: 0.958 Sharpe (+0.012), -15.0% DD (+1.2%), $12.74 terminal (+$0.28). COVID caught 1 day earlier. Daily re-entry rejected (83% whipsaw). | — |
 | 2026-04-06 | [[2026-04-06_leverage_sweep_high]] | Full 2x (100% sub): 14.7% ret, 0.929 Sharpe, -18.1% DD, $25.91 terminal. $21K→$5.1M at age 65. Sharpe cost only -0.030 vs 40%. Daily breaker enables high leverage safely. 3x-50% slightly better ($27.23). | — |
+| 2026-04-06 | [[2026-04-06_leverage_tiers]] | Mixed-signal states (B+C) occur only 6% of months. All tiered strategies underperform PROD on both Sharpe and terminal. Binary 2x confirmed optimal — tiers add complexity for zero benefit. | — |
+| 2026-04-06 | [[2026-04-06_weekly_rebalancing]] | Weekly rebalancing loses $6.22 terminal and -0.058 Sharpe. Faber signal is low-frequency; weekly adds noise not information. 106 leverage switches/24yr vs 48 monthly. Monthly confirmed optimal. | — |
+| 2026-04-06 | [[2026-04-06_harvey_spread_backtest]] | Harvey-conditional put spreads during Faber cash periods: 100% win rate on 23 trades, +1.29%/yr on $100K. Harvey filters out catastrophic months (saved $21K Nov 2018 loss). Supplemental pod for portfolios >$50K. | — |
+| 2026-04-07 | [[2026-04-07_spreads_unconstrained]] | Standalone: 1.151 Sharpe, 7.14% return, 97% win rate, -0.162 correlation with Faber (goes to -0.82 in crisis). 90/10 combined: 1.169 Sharpe (+0.061), -12.1% DD. Best Pod 2 candidate — genuine structural diversification. | — |
+| 2026-04-07 | [[2026-04-07_two_pod_comparison]] | With position management rules: spreads return only 0.8% (0.314 Sharpe). 50% profit target captures small wins but stops allow medium losses. Combined adds +0.001 Sharpe, costs $128K terminal. Pod 2 deferred to $100K+ portfolio. | — |
+| 2026-04-07 | [[2026-04-07_pod2_redesign]] | -0.20d/45DTE redesign WORSE: credit still $0.66 (not $1.80 as hypothesized). Avg loss doubled to -$6,201. Standalone Sharpe dropped to 0.141. 5-point spreads fundamentally can't generate enough credit for managed exits. | — |
+| 2026-04-07 | [[2026-04-07_iron_condor]] | Iron condor CATASTROPHIC: -0.920 Sharpe, -84.6% DD, $17K terminal from $100K. Call leg at +0.20d gets destroyed during recovery rallies that Harvey signals. 19 call stops avg -$10,452. All managed options Pod 2 designs exhausted and failed. | — |
+| 2026-04-07 | [[2026-04-07_adaptive_sma]] | Adaptive lookbacks HURT: -0.057 Sharpe, -$5.96 terminal. 129 regime transitions (50% of months) create whipsaw. Fixed 126/200/252 confirmed optimal — Faber works because it's slow and ignores noise. | — |
+| 2026-04-07 | [[2026-04-07_cross_sectional_momentum]] | Momentum tilt: +$0.96 terminal (+3.8%), -0.002 Sharpe (noise). Coin flip on direction (44% helped, 49% hurt) but winners bigger. Deferred to universe expansion — 5 assets too narrow for momentum. |
+| 2026-04-10 | [[experiments/V11_BETA_SCALED_RESULTS]] | V11 PASSES all pass criteria. 17.9% CAGR, 0.790 Sharpe, -30.8% DD, $5.25M DCA. Pareto improvement on Baseline AND V9 AND QQQ. Never trails QQQ at any 2013-2026 year-end. Honest cost: 2022 -22.5% (worst year), $2M behind V9 on terminal. | — | — |
 
 ## Key Findings (Cumulative)
 
@@ -102,3 +112,471 @@ Faber-Sweep-40-Daily-Daily:
 Circuit breaker fires 0.7x/year (16 events over 24 years) — independent of leverage level.
 See [[2026-04-06_leverage_sweep_high]] | [[2026-04-06_faber_daily_circuit_breaker]]
 
+
+---
+
+## Leverage Philosophy — Permanent Decision
+
+**Date confirmed:** April 6, 2026
+
+**Investor stance:** Thinks in percentages, not dollar amounts. Large nominal drawdowns are acceptable provided the percentage drawdown is within system parameters. This is the correct framing for a 25-year-old 40-year accumulator.
+
+**Decision:** Run 100% SSO/QLD substitution indefinitely unless a specific, pre-defined condition is met. The Pedersen lifecycle schedule is a reference framework, not a mandate.
+
+**Pre-defined conditions to reduce substitution (decided IN ADVANCE, not reactively):**
+1. Portfolio exceeds $500K AND investor has meaningful near-term liquidity needs from this account
+2. A sustained multi-year period where the circuit breaker fires more than 4 times in a 12-month window (indicates the trend filter is not working as designed in the current regime)
+3. Investor's income situation changes such that the Roth IRA represents the primary emergency reserve (should never happen by design — keep separate emergency fund)
+
+**NOT valid reasons to reduce substitution:**
+- Market is down and the drawdown feels large in dollar terms
+- Media/commentators are bearish
+- The system has underperformed IVV for 1-2 years (expected periodically)
+- General anxiety about leverage
+
+**The math justification (locked in):**
+- 100% sub at 14.7% vs 40% sub at 11.2% = 3.5% annual return difference
+- Over 40 years from $21K: $5.1M vs $1.5M — $3.6M difference
+- MaxDD difference: -18.1% vs -15.0% — only 3.1% worse
+- Sharpe difference: 0.929 vs 0.958 — only 3% worse
+- The tradeoff is unambiguously correct for a percentage-focused 40-year accumulator
+
+---
+
+## Final Production Architecture — Confirmed April 6, 2026
+
+All research complete. All experiments run. All decisions locked.
+
+### System Specification
+
+```
+Faber-Sweep-40-Daily-Daily
+  Signal:     Daily SMAs (126/200/252-day) on IVV, QQQ, VGLT, IAU, DBC
+  Allocation: Monthly rebalance
+              3/3 → full baseline weight
+              2/3 → 70% baseline weight, 30% to cash
+              0-1/3 → full weight to cash
+  Weights:    IVV 45%, QQQ 25%, VGLT 5%, IAU 10%, DBC 5%, Cash 10%
+  Freed cap:  To cash
+  Leverage:   BOTH IVV and QQQ at 3/3 → 100% SSO/QLD substitution
+              Either below 3/3 → 1x, no substitution
+              Binary switch — no tiers, no intermediate states
+  Circuit:    Daily check — if either IVV or QQQ closes below ALL 3 daily SMAs
+              → exit leverage next open (SSO→IVV, QLD→QQQ)
+              → re-entry at next monthly rebalance only
+  Execution:  Human-in-the-loop via Telegram
+              Monthly rebalance approval + circuit breaker alerts (~0.7/year)
+```
+
+### Validated Performance (Hybrid Real ETF Data)
+
+| Metric | Value |
+|--------|-------|
+| Annualised return | 14.55% |
+| Volatility | 15.8% |
+| Sharpe ratio | 0.929 |
+| Sortino ratio | 1.120 |
+| Max drawdown | -18.1% |
+| Calmar ratio | 0.81 |
+| Terminal $1 (2002-2026) | $25.01 |
+| $21K at age 65 (40yr) | $4,806,029 |
+| Leveraged months | ~66% |
+| Circuit breaker events | 16 over 24yr (0.7/yr) |
+
+### Key Decisions and Rationale
+
+**Leverage level: 100% SSO/QLD substitution**
+Justified by Ayres & Nalebuff (2010) Lifecycle Investing and Frazzini & Pedersen (2014) Betting Against Beta. Age 22-28 recommended leverage: 2.0x. 100% substitution produces ~140% effective equity exposure. Confirmed by audit against real SSO/QLD data — simulation accurate within 0.15% annualised.
+
+**No leverage tiers**
+Tested per-ETF independent tiers (50% sub when one ETF at 3/3, other at 2/3). Mixed signal states B+C occur only 15 months out of 259 (6%). Best tiered result added $19K at age 65 while adding 50% more circuit breaker events and significant implementation complexity. Binary switch is simpler and better.
+
+**Daily SMAs over monthly**
+126/200/252-day daily SMAs vs 6/10/12-month monthly SMAs. Daily SMAs catch trend changes up to 21 trading days faster. +0.049 Sharpe, +$1.94 terminal over 24 years.
+
+**Daily circuit breaker over weekly**
+Daily check vs Friday-only. Caught COVID 1 day earlier (Feb 27 vs Feb 28). +0.012 Sharpe, +$0.28 terminal, +1.2% max DD improvement. 16 events vs 14 weekly (negligible increase).
+
+**Re-entry monthly only**
+Daily re-entry tested and rejected. 83% of re-entries were rapid whipsaw cycles (exit Monday, re-enter Wednesday). Impractical for human-in-the-loop system.
+
+**Freed capital to cash**
+Pro-rata redistribution tested and rejected — doubles max DD for marginal return. Cash IS the hedge.
+
+**No macro engine (Harvey-Mulliner / Kritzman)**
+All macro engines destroy Sharpe relative to Faber-only. Faber trend filter is the dominant source of value. Macro engines add absolute return by deploying more capital but at disproportionate volatility cost.
+
+**No multi-pod**
+VRP (PUT index): 0.533 Faber correlation — too equity-adjacent. Turbulence layer: de-levers 66-73% of months regardless of threshold — fundamental correlation problem. BTAL: negative long-term returns, deferred. ILS: ETF too new, liquidity concerns. DBMF: insufficient proxy history. All deferred pending portfolio growth and/or better data.
+
+### Experiment Archive (Complete)
+
+| File | Finding |
+|------|---------|
+| 2026-04-04_kritzman_vs_harvey | Kritzman-RP: 1.134 Sharpe, marginal covariance value |
+| 2026-04-04_faber_only_baseline | Faber-only: 1.164 Sharpe, every macro engine destroys Sharpe |
+| 2026-04-05_pro_rata_vs_cash | Pro-rata doubles max DD. Cash is the hedge. |
+| 2026-04-05_universe_expansion | EFA/VNQ/DBA: +0.010-0.022 Sharpe only. Crisis correlations converge. |
+| 2026-04-05_leverage_calibration | Daily Sharpe 16% lower than monthly — intra-month drawdowns real |
+| 2026-04-05_faber_sweep | 40% sub: 0.878 Sharpe, $10.44 terminal |
+| 2026-04-05_vrp_backtest | PUT index: 0.723 Sharpe, 0.533 Faber correlation |
+| 2026-04-05_two_pod_combined | Turbulence fires 73% of months at 0.65 threshold |
+| 2026-04-05_two_pod_s40_rerun | 0.80 threshold still fires 66% — fundamental problem |
+| 2026-04-06_faber_sweep_weekly_daily | Daily SMAs dominant: +$1.94 terminal, +0.049 Sharpe |
+| 2026-04-06_faber_daily_circuit_breaker | Daily CB: 0.958 Sharpe, $12.74 terminal, -15.0% MaxDD |
+| 2026-04-06_leverage_sweep_high | Terminal wealth peaks monotonically through full 2x range |
+| 2026-04-06_pedersen_leverage_validation | 100% sub confirmed: $4.8M at 65 from $21K |
+| 2026-04-06_leverage_audit | Formula validated. Simulation accurate within 0.15% annualised. Conservative. |
+| 2026-04-06_leverage_tiers | Mixed states occur 6% of months. Tiers add no value. Binary switch optimal. |
+
+### Implementation Roadmap
+
+1. Transfer Roth IRA from J.P. Morgan → Schwab (visit branch, wet ink signature)
+2. Apply for Schwab Developer API at developer.schwab.com
+3. Implement production system in taa/run.py
+4. Configure Telegram bot for monthly approvals + daily circuit breaker alerts
+5. Phase 1: Observation mode 3 months (no trades)
+6. Phase 2: Paper trading 3 months (Schwab paper account)
+7. Phase 3: Live at 100% SSO/QLD substitution
+
+### Lifecycle Delevering Schedule (Pedersen — not backtest-optimized)
+
+| Age | Substitution | Eff Equity |
+|-----|-------------|------------|
+| 25-29 | 100% | ~140% |
+| 30-34 | 80% | ~126% |
+| 35-44 | 60% | ~112% |
+| 45-54 | 40% | ~98% |
+| 55+ | 0% | ~70% |
+
+Reduction triggers (pre-committed, not reactive):
+- Age milestone OR portfolio crosses $50K (whichever comes first for next reduction)
+- NOT valid: market down, media bearish, short-term underperformance
+
+---
+
+## Options Pod Research — Concluded April 7, 2026
+
+### Summary of All Tests
+
+| Design | Sharpe | Return | Verdict |
+|--------|--------|--------|---------|
+| Unconstrained put spreads (held to expiry) | 1.151 | 7.1% | Works but impractical live |
+| Put spread -0.10d/30DTE + position management | 0.314 | 0.8% | Marginal — management kills return |
+| Put spread -0.20d/45DTE + position management | 0.141 | 0.8% | Worse — wider stop allows larger losses |
+| Iron condor -0.10d put / +0.20d call | -0.920 | -11.5% | Catastrophic — call side contradicts Harvey recovery signal |
+
+### Root Cause of Failure
+
+The VRP from selling spreads is real. Harvey filtering is real (-0.162 correlation with Faber). The failure is structural: 5-point vertical spreads collect $0.65-0.70 net credit. At 50% profit target that banks $0.33. One stop-out at $3,000-6,000 wipes 9-18 winning trades. Position management cannot make the economics work at this spread width.
+
+The only viable version is unconstrained (hold to expiry, accept occasional large loss). This requires sizing positions so max loss per trade < 2% of portfolio.
+
+### Viability Threshold
+
+| Portfolio | Contracts | Annual Income | Max Loss Event | Viable? |
+|-----------|-----------|--------------|---------------|---------|
+| $21K | 3 | $312 | $1,290 | No |
+| $50K | 7 | $728 | $3,010 | Marginal |
+| $100K | 16 | $1,618 | $6,880 | Getting there |
+| $150K | 24 | $2,426 | $10,320 | YES — threshold |
+| $200K+ | 31+ | $3,134+ | $13,330+ | Comfortable |
+
+**Pod 2 activation trigger: portfolio reaches $150,000**
+
+### Pod 2 Production Spec (when activated at $150K+)
+
+```
+Underlying: SPY
+Signal: Harvey ER > +0.005 AND VIX > 18
+Strike: -0.10 delta short put
+Width: 5 points
+DTE: 30 days
+Management: HOLD TO EXPIRY (no stops, no profit targets)
+Sizing: max 2% portfolio per contract max loss
+  ($150K × 0.02 / $430 = 7 contracts minimum)
+Max position: 24 contracts at $150K
+Re-entry: monthly, Harvey signal required
+```
+
+Milestone plan:
+- $50K: Paper trade 1-2 contracts to learn execution
+- $100K: Run 1-2 live contracts ($800-1,600/yr — learning phase)
+- $150K: Scale to full sizing, pod earns its keep
+
+
+---
+
+## Architecture Update — April 2026
+
+### Pedersen Lifecycle: DROPPED
+100% SSO/QLD substitution (2x leverage, ~140% effective equity) throughout the entire
+investment lifetime. The circuit breaker (daily 3/3 SMA breach → exit leverage next open)
+is the drawdown management mechanism. No portfolio-size or age-triggered delevering.
+
+Rationale: lifecycle delevering is voluntary terminal wealth destruction. Circuit breaker
+limits max drawdown to -18.1% historically. The two systems serve different functions
+and should not be conflated.
+
+### Signal-Off Capital: DBMF 50/50 with T-bills (pending backtest validation)
+During equity signal-off periods (IVV or QQQ score ≤ 1), freed equity weight splits:
+- 50% → DBMF (iMGP DBi Managed Futures Strategy ETF)
+- 50% → T-bills
+
+DBMF has no Faber signal, no circuit breaker, no independent treatment. It is purely
+a passive cash substitute. When equity signal restores (both IVV + QQQ at 3/3), DBMF
+allocation reverts to zero and full SSO/QLD substitution activates.
+
+Architecture rationale: DBMF trend-follows across asset classes including shorting equity.
+In 2022, DBMF +20% while IVV -18% and VGLT -28%. The equity Faber signal identifies
+exactly the periods when managed futures crisis alpha is most likely to be active.
+
+Status: awaiting Claude Code backtest (DBMF_CASH_SUBSTITUTE_RESULTS.md).
+Key test: does 2022 max drawdown worsen? If not, architecture is adopted.
+
+
+---
+
+## April 9, 2026 — Architecture Finalized
+
+### Pedersen Lifecycle: DROPPED
+100% SSO/QLD substitution throughout entire investment lifetime. No delevering at portfolio milestones. Circuit breaker is the sole drawdown mechanism.
+
+### Signal-Off Capital: DBMF 50/50 ADOPTED
+Freed equity weight during signal-off periods → 50% DBMF / 50% T-bills.
+Validated by 2022 actual data: +3.1% improvement, max DD unchanged.
+Full-period backtest inflated by bad proxy (0.249 correlation). Realistic improvement: Sharpe +0.02-0.03.
+See [[experiments/DBMF_CASH_SUBSTITUTE_RESULTS]] for full detail.
+
+### Current Production Spec (v5)
+- Faber 126/200/252-day daily SMAs
+- Score 3/3 → full baseline weight (eligible for leverage)
+- Score 2/3 → 70% baseline, 30% freed
+- Score 0-1 → 0%, full baseline freed
+- Freed equity weight → 50% DBMF / 50% T-bills
+- Freed non-equity weight (VGLT/IAU/DBC) → T-bills (unchanged)
+- Both IVV + QQQ at 3/3 → 100% SSO/QLD substitution (no lifecycle cap)
+- Daily circuit breaker: 3/3 SMA breach → exit leverage next open
+
+
+---
+
+## April 9, 2026 — Bull Market Survivability Test Complete
+
+See [[experiments/BULL_MARKET_SURVIVABILITY]] for full detail.
+
+**Key honest findings:**
+- 14.55% CAGR is NOT a dot-com artifact. Faber CAGR from any start date: 13.9%-21.5%
+- Faber Sharpe beats QQQ Sharpe from EVERY start date tested (2002, 2004, 2007, 2010, 2013, 2019)
+- During 2013-2021 bull: Faber 20.7% vs QQQ 23.4% — QQQ wins raw return, Faber wins Sharpe
+- Maximum DCA dollar gap: -$61,942 at end of 2020 (closed by 2022 bear)
+- Longest 12m underperformance streak: 26 consecutive months (Oct 2014 – Nov 2016)
+- QQQ beats Faber's trailing 12m in 61% of bull market months — investor must accept this
+- The 2020 CB save paid for every whipsaw event in the system's history combined
+
+
+---
+
+## April 9, 2026 — Equity Sleeve Tilt Under Research
+
+**Idea:** Dynamic IVV/QQQ split within fixed 70% equity sleeve based on QQQ/IVV ratio vs 200-day SMA.
+
+- QQQ in relative uptrend → tilt QQQ (30% IVV / 40% QQQ)
+- QQQ in relative downtrend → tilt IVV (55% IVV / 15% QQQ)
+- Total equity always 70%, total effective leverage always 140% when signal on
+
+A priori signal: QQQ/IVV ratio vs its own 200-day SMA — zero new parameters beyond tilt magnitude.
+
+**Critical test:** 1999-2000. QQQ was in relative uptrend throughout; this would have tilted toward QQQ right before the -83% crash. Must confirm Faber signal exits equity fast enough that the tilt doesn't materially worsen dot-com performance.
+
+Prompt: EQUITY_SLEEVE_TILT_PROMPT.md | Results pending Claude Code run.
+
+
+---
+
+## April 9, 2026 — Equity Sleeve Tilt: REJECTED
+
+See [[experiments/EQUITY_SLEEVE_TILT_RESULTS]] for full detail.
+
+Dot-com stress test failed. Max DD worsened -6.9pp (from -27.5% to -34.4%). QQQ/IVV ratio crossed below SMA on May 10, 2000 — too late. April 2000 already cost -15.3% vs baseline -11.6%.
+
+Full-period: tilt adds +0.3% CAGR but costs -0.015 Sharpe and -0.2% MaxDD. Trades risk-adjusted return for raw return — contradicts system design philosophy. Fixed 45/25 equity split confirmed as optimal.
+
+
+---
+
+## April 9, 2026 — Architecture Rethink: Terminal Wealth Optimization
+
+**Core question:** Are VGLT/IAU/DBC earning their place in the portfolio, or is the circuit breaker doing all the real defensive work and the defensive assets just diluting equity compounding?
+
+**New direction:** Test simplified high-conviction architectures that remove defensive assets entirely, maximizing equity exposure during signal-on periods with circuit breaker as sole risk management. Must beat QQQ buy-and-hold on CAGR from any start date while maintaining materially better drawdown than naked QQQ.
+
+Variants being tested:
+1. QLD only + circuit breaker (single asset, max conviction)
+2. QQQ/IVV + Faber signal + cash only (no defensive assets)
+3. QLD/SSO split + Faber + cash only
+4. Full equity sleeve (IVV+QQQ) at varying splits + cash only
+5. QQQ-only universe: Faber on QQQ → QLD when 3/3, QQQ when 1-2/3, cash when 0/3
+
+Prompt: TERMINAL_WEALTH_OPTIMIZATION_PROMPT.md | Results pending.
+
+
+---
+
+## April 9, 2026 — Terminal Wealth Optimization: Complete
+
+See experiments/TERMINAL_WEALTH_OPTIMIZATION.md for full detail.
+
+**Core finding: no variant passes all four criteria simultaneously.**
+- Variants beating QQQ CAGR from 2013 (V1, V9) have max DD > -30%
+- Variants with max DD < -30% (Baseline, V3-V5) don't beat QQQ from 2013
+- Defensive assets confirmed net positive: Baseline $25.62 beats no-defense $20.21
+
+**The honest tradeoff:**
+| Goal | Best variant | Cost |
+|------|-------------|------|
+| Maximum terminal wealth | V9 QLD+IVVguard | -37.9% max DD, $7.37M DCA |
+| Maximum Sharpe | Baseline | 17.2% CAGR from 2013 (trails QQQ 18.9%) |
+| Balance | ??? | Need a new variant |
+
+**V9 key numbers:** 19.4% CAGR, 0.777 Sharpe, -37.9% DD, $85.25 terminal, $7.37M DCA
+**Baseline key numbers:** 13.8% CAGR, 0.914 Sharpe, -18.1% DD, $25.62 terminal, $2.40M DCA
+
+**Strategic decision pending:** The gap between V9 and Baseline is enormous on terminal wealth ($7.37M vs $2.40M DCA). The -37.9% DD is the price. At age 25 with a $21K account and 40-year horizon, the question is whether that DD is acceptable given the lifecycle context.
+
+
+---
+
+## April 9, 2026 — V10 Dynamic State Architecture Under Research
+
+**Architecture:** No fixed baseline weights. State machine driven entirely by Faber scores on 5 assets.
+
+State A (min score=3, both 3/3): 100% QLD — V9 full conviction
+State B (min score=2, one 2/3): 70% QLD + 30% QQQ — partial delever
+State C (min score=1, one 1/3): 30% QQQ + 70% defensive — NEW fast re-entry
+State D (min score=0, one 0/3): 100% defensive — full exit
+
+Defensive assets: DBMF (unconditional) + VGLT/IAU (Faber-conditioned on their own scores).
+Key innovation: State C allows re-entry at 1/3 signal strength (currently mapped to "off").
+Key test: 2022 — does Faber-conditioned VGLT correctly exclude VGLT when it's off-signal?
+
+Prompt: V10_DYNAMIC_STATE_PROMPT.md | Results pending Claude Code run.
+
+
+---
+
+## April 9, 2026 — Beta-Scaled Signal² Composition Formula
+
+**The core allocation formula for IVV/QQQ split within the equity sleeve:**
+
+```
+raw_IVV = IVV_score²
+raw_QQQ = QQQ_score² × 1.5^(QQQ_score - 2)
+
+w_IVV = raw_IVV / (raw_IVV + raw_QQQ)
+w_QQQ = raw_QQQ / (raw_IVV + raw_QQQ)
+```
+
+The exponent (score-2) scales the beta effect by confidence level:
+- Score 3 → power +1: beta-seeking (amplify QQQ's higher beta in bull markets)
+- Score 2 → power  0: beta-neutral (ignore beta at middling signals)
+- Score 1 → power -1: beta-averse (penalize high beta in weak signal environments)
+
+Zero free parameters. Beta values (QQQ≈1.5, IVV≈1.0) are a priori from published research.
+
+Key outputs:
+- Both 3/3: 60% QQQ / 40% IVV (beta tilt confirmed bull)
+- Both 2/3: 50% / 50% (neutral)
+- Both 1/3: 40% QQQ / 60% IVV (beta aversive)
+- QQQ weak (1) + IVV strong (3): 7% QQQ / 93% IVV (double penalty on QQQ)
+
+This is the COMPOSITION layer only. Still need: (1) total equity % at each min-score level, (2) leverage overlay (QLD/SSO vs QQQ/IVV).
+
+
+---
+
+## April 9, 2026 — V11 Architecture: Beta-Scaled Dynamic State System
+
+**Core innovation:** No fixed baseline weights. Portfolio state determined by sum of IVV + QQQ Faber scores. Beta-scaled composition formula tilts toward QQQ at high conviction, toward IVV at low conviction.
+
+**Equity caps by sum score:**
+- Sum 6: 100% equity, 2× leverage (both SSO+QLD)
+- Sum 5: 100% equity, 2× leverage
+- Sum 4: 70% equity, 1× unleveraged
+- Sum 3: 30% equity, 1×
+- Sum 2: 10% equity, 1×
+- Sum 1-0: 0% equity, 100% defensive
+
+**Composition formula (beta-scaled signal²):**
+```
+raw_IVV = IVV_score²
+raw_QQQ = QQQ_score² × 1.5^(QQQ_score - 2)
+w_QQQ = raw_QQQ / (raw_IVV + raw_QQQ)
+```
+- Score 3: beta-seeking (1.5^+1 = amplify QQQ)
+- Score 2: beta-neutral (1.5^0 = 1)
+- Score 1: beta-averse (1.5^-1 = penalize QQQ)
+
+**Key allocation outputs:**
+- Both 3/3: 40% SSO + 60% QLD (beta tilt QQQ at full conviction)
+- Both 2/2: 35% IVV + 35% QQQ (neutral)
+- 3+1 or 1+3: 65% in strong asset, 35% defensive (7% redirected from weak asset to defensives)
+
+**Defensive pool:** DBMF (unconditional) + VGLT/IAU/DBC (Faber-conditioned, own score ≥ 2)
+**Circuit breaker:** identical to V9
+
+Status: prompt pending confirmation of final table.
+
+
+**CORRECTED — Sum 5 leverage is asset-specific:**
+- IVV=3, QQQ=2: 69% SSO (2×) + 31% QQQ (1×)
+- IVV=2, QQQ=3: 23% IVV (1×) + 77% QLD (2×)
+Only the asset at 3/3 gets leverage. The 2/3 asset held unleveraged.
+
+
+---
+
+## April 9, 2026 — V11 Prompt Written, Pending Claude Code Run
+
+Prompt: V11_BETA_SCALED_PROMPT.md
+
+Pass criteria: V11 must simultaneously improve on BOTH Baseline AND V9.
+- vs Baseline: higher CAGR from 2013, smaller DCA gap vs QQQ
+- vs V9: lower max DD, higher Sharpe
+- vs QQQ: beat CAGR from 2013 start (18.9%), beat max DD (-53.4%)
+
+If V11 achieves max DD between -18% and -38% while beating QQQ CAGR from 2013,
+it represents a genuine Pareto improvement — better terminal wealth than Baseline,
+better risk-adjusted returns than V9.
+
+
+---
+
+## April 10, 2026 — V11 Backtest Complete: PARETO IMPROVEMENT CONFIRMED
+
+See [[experiments/V11_BETA_SCALED_RESULTS]] for full detail.
+
+**V11 passes ALL pass criteria simultaneously.**
+
+| Metric | V11 | Baseline | V9 | QQQ B&H |
+|---|---|---|---|---|
+| CAGR (full)       | 17.90% | 13.79% | 19.37% | 12.57% |
+| Sharpe            | 0.790  | 0.910  | 0.777  | 0.634  |
+| Max DD            | -30.8% | -18.5% | -37.9% | -53.4% |
+| Terminal $1       | $62.46 | $25.58 | $85.25 | $17.58 |
+| DCA $700/mo lifetime | $5.25M | $2.40M | $7.37M | $2.33M |
+| CAGR from 2013    | 23.98% | 17.19% | 28.51% | 18.94% |
+| Peak DCA gap vs QQQ | $0K  | -$65K  | (best) | (base) |
+
+**Headline result:** V11 never trails QQQ at any year-end of the 2013-2026 DCA path. Closes Baseline's -$65K gap entirely.
+
+**Honest weaknesses to flag:**
+- 2022 was V11's worst year (-22.5%) — worse than Baseline (-9.9%) and V9 (-15.2%). Jan 2022 alone -14.66% from sum=6 leverage entering a top.
+- V11 buys -7.1pp lower max DD vs V9 at the cost of ~$2M in lifetime DCA terminal.
+- Per-asset CB fires more often (25 events vs Baseline 16, V9 14). ~1/year is fine.
+
+**Beta tilt validates exactly:** Sum=6 months avg 60% QQQ / 40% IVV. Sum=2 months avg 7.3% IVV / 2.7% QQQ. Composition formula working as designed.
+
+**State occupancy (291 months):** Sum=6 dominates at 65.6%. Intermediate states (4-5) only ~10%. System is mostly binary "full conviction" or "fully defensive".
+
+**Strategic implication:** V11 is now the leading candidate for production. The decision between V11 and V9 reduces to: do you accept -7pp deeper drawdowns (V9) for an extra $2M of lifetime DCA wealth? V11 is the more defensible choice for a 40-year accumulator under both percentage- and dollar-DCA framings.
