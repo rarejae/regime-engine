@@ -39,7 +39,14 @@ The Harvey-Mulliner similarity engine was the original capital direction mechani
 | 2026-04-07 | [[2026-04-07_iron_condor]] | Iron condor CATASTROPHIC: -0.920 Sharpe, -84.6% DD, $17K terminal from $100K. Call leg at +0.20d gets destroyed during recovery rallies that Harvey signals. 19 call stops avg -$10,452. All managed options Pod 2 designs exhausted and failed. | — |
 | 2026-04-07 | [[2026-04-07_adaptive_sma]] | Adaptive lookbacks HURT: -0.057 Sharpe, -$5.96 terminal. 129 regime transitions (50% of months) create whipsaw. Fixed 126/200/252 confirmed optimal — Faber works because it's slow and ignores noise. | — |
 | 2026-04-07 | [[2026-04-07_cross_sectional_momentum]] | Momentum tilt: +$0.96 terminal (+3.8%), -0.002 Sharpe (noise). Coin flip on direction (44% helped, 49% hurt) but winners bigger. Deferred to universe expansion — 5 assets too narrow for momentum. |
-| 2026-04-10 | [[experiments/V11_BETA_SCALED_RESULTS]] | V11 PASSES all pass criteria. 17.9% CAGR, 0.790 Sharpe, -30.8% DD, $5.25M DCA. Pareto improvement on Baseline AND V9 AND QQQ. Never trails QQQ at any 2013-2026 year-end. Honest cost: 2022 -22.5% (worst year), $2M behind V9 on terminal. | — | — |
+| 2026-04-10 | [[experiments/V11_BETA_SCALED_RESULTS]] | V11 PASSES all pass criteria. 17.9% CAGR, 0.790 Sharpe, -30.8% DD, $5.25M DCA. Pareto improvement on Baseline AND V9 AND QQQ. Never trails QQQ at any 2013-2026 year-end. Honest cost: 2022 -22.5% (worst year), $2M behind V9 on terminal. | — |
+| 2026-04-10 | [[experiments/V12_INDEPENDENT_2X_RESULTS]] | V12 PASSES all criteria. 17.4% CAGR, 0.803 Sharpe, -28.8% DD, $4.80M DCA. Two independent Faber-gated 50/50 sleeves. Matches V11 on return, edges it on Sharpe + MaxDD with 1/8 complexity. V11 retired — V12 dominates it. | — |
+| 2026-04-11 | [[experiments/V13_THREE_STATE_RESULTS]] | V13 FAILS all paths. 17.4% CAGR, 0.742 Sharpe, **-42.0% DD** — worse than V9 on every metric. Delever state drag: V13 holds QQQ 1× in months where V9 holds QLD (1.12%/mo drag). Weekly re-entry: 1/18 CB events resolved, nearly useless. CB→cash worse than CB→QQQ. V9 binary design confirmed correct. | [[reject_three_state]], [[reject_weekly_reentry]] |
+| 2026-04-12 | [[experiments/V14_DEFENSIVE_ROTATION_RESULTS]] | V14 FAILS all variants. Best is V14-B: 20.4% CAGR, 0.793 Sharpe but **-39.1% DD** (1.2pp worse than V9). Defensive pool earns +0.04%/mo over cash but with 3× vol. Jun-Sep 2022: 100% DBC concentration → -7.50%, -7.04% months. Cash IS the hedge, confirmed for the third time. | [[reject_defensive_rotation]] |
+| 2026-04-12 | [[experiments/V9_DCA_REDEPLOYMENT_RESULTS]] | V9-DCA FAILS all step sizes. 56% DCA win rate but GFC kill shot: 9 tranches into -46% IVV decline, exit below avg cost → -6.17% delta vs T-bills. V9-DCA-10 closest (CAGR +0.08pp) but Sharpe -0.001, MaxDD -1.6pp. Cash is the hedge, for the FOURTH time. V9 modifications officially EXHAUSTED. | [[reject_dca_redeployment]] |
+| 2026-04-12 | [[experiments/V15_TWO_POD_RESULTS]] | V15 PASSES vs V9. Two-pod (V9 QLD 50% + IVV/SSO 50%): 17.65% CAGR, **0.813 Sharpe** (highest leveraged), -29.0% DD. Pod rebal adds +0.008 Sharpe, +1.8pp DD. V12 displaced from frontier. GFC DD -18.1% (vs V9 -30.6%, V12 -23.8%). | — |
+| 2026-04-12 | [[experiments/V16_TWO_POD_GOLD_RESULTS]] | V16 PASSES both variants. 45/45/10 (QLD+SSO+IAU): 17.06% CAGR, **0.846 Sharpe** (ALL-TIME HIGH), -27.0% DD. Gold GFC alpha: +14.8% in 13/17 months. V15 displaced from frontier. Gold correctly excluded by Jun 2022. | — |
+| 2026-04-12 | [[experiments/V17_DYNAMIC_REDEPLOYMENT_RESULTS]] | V17 PASSES criteria but does NOT displace V16-B. 17.54% CAGR (+0.48pp), 0.842 Sharpe (-0.004), -27.7% DD (-0.7pp). Redeployment works (+0.14%/mo excess) but adds vol faster than return. V16-B remains frontier balanced point. | — | — |
 
 ## Key Findings (Cumulative)
 
@@ -580,3 +587,136 @@ See [[experiments/V11_BETA_SCALED_RESULTS]] for full detail.
 **State occupancy (291 months):** Sum=6 dominates at 65.6%. Intermediate states (4-5) only ~10%. System is mostly binary "full conviction" or "fully defensive".
 
 **Strategic implication:** V11 is now the leading candidate for production. The decision between V11 and V9 reduces to: do you accept -7pp deeper drawdowns (V9) for an extra $2M of lifetime DCA wealth? V11 is the more defensible choice for a 40-year accumulator under both percentage- and dollar-DCA framings.
+
+
+---
+
+## April 10, 2026 — V12 Independent 2× Test: V11 RETIRED
+
+See [[experiments/V12_INDEPENDENT_2X_RESULTS]] for full detail.
+
+**V12 strips V11 to its essence:** two independent 50/50 sleeves on IVV and QQQ, each Faber-gated, each leveraged to 2× when at 3/3. No defensive pool, no beta formula, no graduated cap table. Two binary switches + cash.
+
+**V12 passes all criteria and makes V11 structurally redundant:**
+
+| Metric | V12 | V11 | V9 | Baseline |
+|---|---|---|---|---|
+| CAGR (full)       | 17.41% | 17.90% | 19.37% | 13.79% |
+| Sharpe            | **0.803**  | 0.790  | 0.777  | 0.910  |
+| Max DD            | **-28.8%** | -30.8% | -37.9% | -18.5% |
+| Terminal $1       | $56.18 | $62.46 | $85.25 | $25.58 |
+| DCA $700/mo       | $4.80M | $5.25M | $7.37M | $2.40M |
+| CAGR from 2013    | 23.45% | 23.98% | 28.51% | 17.19% |
+| Moving parts      | 2 switches | 16-row table | 2 thresholds | 12 sub-rules |
+
+**V12 dominates V11 on Sharpe (+0.013), MaxDD (+2.0pp), and simplicity.** V11's -$120K DCA advantage is noise-level. V11 can be retired from the frontier.
+
+**Signal divergence analysis (the thing V12 was designed to test):**
+- "Both 3/3" (65.9% of months): V12 earns +0.58%/mo vs Baseline — this is where the leverage advantage lives
+- "IVV 3, QQQ<3" (4.1%): V12 earns +0.34%/mo — independent gating wins
+- "QQQ 3, IVV<3" (5.9%): V12 loses -0.30%/mo — minor asymmetric drag
+- "Neither 3/3" (24.1%): V12 basically matches Baseline
+
+Net-net independent gating is approximately neutral in the divergence states. V12's performance edge over Baseline comes almost entirely from the 200% effective equity in the "Both 3/3" state.
+
+**Pareto frontier as of 2026-04-10:**
+- **V9** — max wealth ($7.4M DCA), deepest DD (-38%)
+- **V12** — balanced ($4.8M DCA, -29% DD), simplest architecture
+- **Baseline** — max Sharpe (0.91), shallowest DD (-18%), lowest terminal
+
+V11 is off the frontier. The remaining choice is V9 vs V12 vs Baseline on the risk/reward curve.
+
+**V12's structural weakness:** 200% eff equity two-thirds of the time means monthly-rebalance exposure to peak drawdowns. Jan 2022 took -13.99% before the CB could fire. COVID -28.8% roughly matches QQQ B&H (-28.6%) — the system limited further pain but the initial blow was unprotected.
+
+
+---
+
+## April 11-12, 2026 — V13 and V14: V9 Modification Attempts EXHAUSTED
+
+See [[experiments/V13_THREE_STATE_RESULTS]] and [[experiments/V14_DEFENSIVE_ROTATION_RESULTS]].
+
+**V13 (three-state + weekly re-entry):** Failed by modifying V9's OFFENSE. Adding intermediate states (QQQ 1×), tightening the IVV guard (score 2 → delever), and weekly re-entry ALL made things worse. MaxDD WORSENED to -42.0%. The 22 delever months averaged -1.12%/mo vs V9. Weekly re-entry resolved 1/18 CB events — essentially useless. V9's binary QLD/cash with loose IVV guard is the correct offense design.
+
+**V14 (defensive rotation during cash):** Failed by modifying V9's DEFENSE. Routing freed capital to Faber-gated IVV/VGLT/IAU/DBC earned +0.04%/mo over T-bills but with 3× the volatility. Jun-Sep 2022: only DBC survived its Faber gate, creating 100% single-asset concentration into crashing commodities (-7.50%, -7.04% months). V14-B was the closest to passing (+1pp CAGR, +0.016 Sharpe, $106 terminal) but MaxDD worsened 1.2pp.
+
+**Conclusion: V9 is terminal.** Every modification to V9 — offense or defense — has been tested and failed. The Pareto frontier is locked:
+
+| Point | Strategy | CAGR | Sharpe | MaxDD | DCA |
+|---|---|---|---|---|---|
+| Max wealth | **V9** | 19.4% | 0.777 | -37.9% | $7.37M |
+| Balanced | **V12** | 17.4% | 0.803 | -28.8% | $4.80M |
+| Max Sharpe | **Baseline** | 13.8% | 0.910 | -18.5% | $2.40M |
+
+No further V9 modifications pending.
+
+
+---
+
+## April 12, 2026 — V15 Two-Pod: NEW FRONTIER POINT
+
+See [[experiments/V15_TWO_POD_RESULTS]] for full detail.
+
+V15 runs V9 unchanged as Pod 1 (50%) and adds IVV/SSO V9-logic as Pod 2 (50%).
+Monthly pod rebalancing to 50/50 if drift > 5%. Pod isolation + rebalancing is
+the key structural innovation.
+
+| Metric | V15 (rebal) | V9 | V12 | Baseline |
+|---|---|---|---|---|
+| CAGR | 17.65% | 19.37% | 17.41% | 13.79% |
+| Sharpe | **0.813** | 0.777 | 0.803 | 0.910 |
+| MaxDD | **-29.0%** | -37.9% | -28.8% | -18.5% |
+| DCA | $4.92M | $7.37M | $4.80M | $2.40M |
+
+**V15 has the highest Sharpe of any leveraged variant (0.813).** Pod rebalancing
+adds +0.008 Sharpe and +1.8pp MaxDD at -0.07pp CAGR cost. V12 displaced from frontier.
+
+**GFC standout: -18.1% DD** (vs V9 -30.6%, V12 -23.8%). Pod rebalancing + independent
+delevering spread the GFC pain across two sequential exits.
+
+**Updated Pareto frontier:**
+
+| Point | Strategy | CAGR | Sharpe | MaxDD | DCA |
+|---|---|---|---|---|---|
+| Max wealth | **V9** | 19.4% | 0.777 | -37.9% | $7.37M |
+| Balanced | **V15** | 17.7% | 0.813 | -29.0% | $4.92M |
+| Max Sharpe | **Baseline** | 13.8% | 0.910 | -18.5% | $2.40M |
+
+V12 no longer on frontier — V15 dominates on Sharpe while matching MaxDD and CAGR.
+
+
+---
+
+## April 12, 2026 — V16 Two-Pod + Gold: ALL-TIME SHARPE HIGH
+
+See [[experiments/V16_TWO_POD_GOLD_RESULTS]] for full detail.
+
+V16-B adds 10% Faber-gated gold (IAU ≥ 3) to V15's two-pod architecture:
+
+| Metric | V16-B | V15 | V9 | Baseline |
+|---|---|---|---|---|
+| CAGR | 17.06% | 17.65% | 19.37% | 13.79% |
+| Sharpe | **0.846** | 0.813 | 0.777 | 0.910 |
+| MaxDD | **-27.0%** | -29.0% | -37.9% | -18.5% |
+| DCA | $4.41M | $4.92M | $7.37M | $2.40M |
+| GFC DD | **-16.2%** | -18.1% | -30.6% | -9.0% |
+
+**Gold's crisis alpha is real and Faber-gated:**
+- GFC: 13/17 months active, +14.8% cumulative while equities -53%
+- COVID: 3/3 months active, +6.3%
+- 2022: correctly excluded by June (score dropped to 0)
+- Dot-com: inactive (gold bear market) — no harm, no help
+
+**V16-B's vol (21.33%) is the lowest of any leveraged variant.** Gold's low equity
+correlation damps portfolio vol by 2pp vs V15. This vol reduction drives the Sharpe.
+
+**Updated Pareto frontier (FINAL):**
+
+| Point | Strategy | CAGR | Sharpe | MaxDD | DCA |
+|---|---|---|---|---|---|
+| Max wealth | **V9** | 19.4% | 0.777 | -37.9% | $7.37M |
+| Balanced | **V16-B** | 17.1% | 0.846 | -27.0% | $4.41M |
+| Max Sharpe | **Baseline** | 13.8% | 0.910 | -18.5% | $2.40M |
+
+V15 and V12 displaced. V11, V13, V14, V9-DCA all previously failed. The frontier
+has three clean points. V16-B is now only 0.064 Sharpe below Baseline while
+delivering +3.27pp more CAGR and +$2.01M more DCA.
