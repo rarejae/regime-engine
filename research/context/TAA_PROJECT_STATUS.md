@@ -46,7 +46,14 @@ The Harvey-Mulliner similarity engine was the original capital direction mechani
 | 2026-04-12 | [[experiments/V9_DCA_REDEPLOYMENT_RESULTS]] | V9-DCA FAILS all step sizes. 56% DCA win rate but GFC kill shot: 9 tranches into -46% IVV decline, exit below avg cost → -6.17% delta vs T-bills. V9-DCA-10 closest (CAGR +0.08pp) but Sharpe -0.001, MaxDD -1.6pp. Cash is the hedge, for the FOURTH time. V9 modifications officially EXHAUSTED. | [[reject_dca_redeployment]] |
 | 2026-04-12 | [[experiments/V15_TWO_POD_RESULTS]] | V15 PASSES vs V9. Two-pod (V9 QLD 50% + IVV/SSO 50%): 17.65% CAGR, **0.813 Sharpe** (highest leveraged), -29.0% DD. Pod rebal adds +0.008 Sharpe, +1.8pp DD. V12 displaced from frontier. GFC DD -18.1% (vs V9 -30.6%, V12 -23.8%). | — |
 | 2026-04-12 | [[experiments/V16_TWO_POD_GOLD_RESULTS]] | V16 PASSES both variants. 45/45/10 (QLD+SSO+IAU): 17.06% CAGR, **0.846 Sharpe** (ALL-TIME HIGH), -27.0% DD. Gold GFC alpha: +14.8% in 13/17 months. V15 displaced from frontier. Gold correctly excluded by Jun 2022. | — |
-| 2026-04-12 | [[experiments/V17_DYNAMIC_REDEPLOYMENT_RESULTS]] | V17 PASSES criteria but does NOT displace V16-B. 17.54% CAGR (+0.48pp), 0.842 Sharpe (-0.004), -27.7% DD (-0.7pp). Redeployment works (+0.14%/mo excess) but adds vol faster than return. V16-B remains frontier balanced point. | — | — |
+| 2026-04-12 | [[experiments/V17_DYNAMIC_REDEPLOYMENT_RESULTS]] | V17 PASSES criteria but does NOT displace V16-B. 17.54% CAGR (+0.48pp), 0.842 Sharpe (-0.004), -27.7% DD (-0.7pp). Redeployment works (+0.14%/mo excess) but adds vol faster than return. V16-B remains frontier balanced point. | — |
+| 2026-04-12 | [[experiments/V18_DRAWDOWN_PROTECTION_RESULTS]] | V18 FAILS all mechanisms. Leading indicators: 0/15 pass validation (best VIX slope 27% hit / 73% FP). Portfolio CB: PCB-10 fires 209 times, drops CAGR to 11.4%. -27% MaxDD is STRUCTURAL FLOOR for 180% eff equity. Per-asset CB correctly calibrated. No free DD protection exists. | [[reject_portfolio_cb]], [[reject_leading_indicators]] |
+| 2026-04-13 | [[experiments/V18B_INTRAMONTH_CB_RESULTS]] | V18b FAILS. IMC-20/25 never fire (0 events in 24yr). V16-B's -27% DD is multi-month from UNLEVERED equity after per-asset CBs already stripped leverage. Intra-month CB solves wrong problem — no leverage left to strip. DD protection thesis DEFINITIVELY CLOSED. | [[reject_intramonth_cb]] |
+| 2026-04-13 | [[experiments/V19_CB_CASH_EXIT_RESULTS]] | **V19 DOMINATES V16-B on EVERY metric.** CB→cash: 17.29% CAGR (+0.23), **0.867 Sharpe** (+0.021), -25.1% DD (+1.9pp), $54.75 term (+$2.57). Post-CB analysis: equity -5.49% cumul vs cash +0.80%. Cash wins 14/27, equity wins 13/27. V16-B displaced. | — |
+| 2026-04-13 | [[experiments/V19B_NO_GOLD_RESULTS]] | V19b (no gold, 50/50 CB→cash): 17.88% CAGR, 0.834 Sharpe, -27.0% DD. Gold earns its 10%: V19 beats V19b on Sharpe (+0.033) and MaxDD (+1.9pp). CB→cash improvement confirmed independent of gold (V19b vs V15: +0.020 Sharpe, +2.0pp DD). V19 remains frontier. | — |
+| 2026-04-13 | [[experiments/V19C_FULL_UNLEVER_RESULTS]] | V19c (100% unlev at sc2): WASH. 17.41% CAGR (+0.12pp), 0.865 Sharpe (-0.002), -25.1% DD (same). Keep V19's 70/30 — marginally better Sharpe and crisis DDs. Score 2/3 occurs 14% of months. | — |
+| 2026-04-13 | [[experiments/V19D_GOLD_CB_RESULTS]] | V19d (gold CB): WASH. -0.001 Sharpe, -0.02pp CAGR, same DD. Gold CB fires 10× in 24yr. **ADOPTED for design consistency** — all risk assets now have 3/3 SMA breach → cash CB. V19d is the FINAL production spec. | — |
+| 2026-04-13 | [[experiments/V20_DIRECTIONAL_TRANSITIONS_RESULTS]] | V20 FAILS all variants. Directional hypothesis INVERTED: 3→2 recovers 57% (not declining), 1→2 never reaches 3 (0% recovery). Score-2 direction is noise. V19d's non-directional 70/30 confirmed optimal. | [[reject_directional_transitions]] | — |
 
 ## Key Findings (Cumulative)
 
@@ -720,3 +727,57 @@ correlation damps portfolio vol by 2pp vs V15. This vol reduction drives the Sha
 V15 and V12 displaced. V11, V13, V14, V9-DCA all previously failed. The frontier
 has three clean points. V16-B is now only 0.064 Sharpe below Baseline while
 delivering +3.27pp more CAGR and +$2.01M more DCA.
+
+
+---
+
+## April 13, 2026 — V19: CB→Cash DOMINATES V16-B
+
+See [[experiments/V19_CB_CASH_EXIT_RESULTS]] for full detail.
+
+**V19 is a strict Pareto improvement over V16-B — better on every metric simultaneously.**
+
+| Metric | V19 | V16-B | Delta |
+|---|---|---|---|
+| CAGR | **17.29%** | 17.06% | +0.23pp |
+| Sharpe | **0.867** | 0.846 | +0.021 |
+| MaxDD | **-25.1%** | -27.0% | +1.9pp |
+| Terminal $1 | **$54.75** | $52.18 | +$2.57 |
+| DCA | **$4.64M** | $4.41M | +$230K |
+| Vol | **20.93%** | 21.33% | -0.40pp |
+
+**The insight from V18b unlocked this:** V16-B's -27% DD came from unlevered equity held 23 days between CB fire and monthly rebalance. V19 exits to cash instead, eliminating that exposure. Post-CB event analysis across 27 events: equity cumulative -5.49%, cash cumulative +0.80%. Holding unlevered equity post-CB was actively destroying value.
+
+**V13's CB→cash failure was due to confounding changes** (tighter IVV guard, three states, weekly re-entry), not the CB→cash mechanism itself. V19 isolates it cleanly.
+
+**Updated Pareto frontier:**
+
+| Point | Strategy | CAGR | Sharpe | MaxDD | DCA |
+|---|---|---|---|---|---|
+| Max wealth | **V9** | 19.4% | 0.777 | -37.9% | $7.37M |
+| Balanced | **V19** | 17.3% | **0.867** | -25.1% | $4.64M |
+| Max Sharpe | **Baseline** | 13.8% | 0.910 | -18.5% | $2.40M |
+
+V16-B no longer on any efficient frontier. V19 is now only 0.043 Sharpe below Baseline (+3.50pp CAGR, +$2.24M DCA).
+
+
+---
+
+## April 13, 2026 — V19d Robustness Tests Complete, Research Arc Closed
+
+V19c (100% unlev at score 2): WASH. Keep 70/30.
+V19d (gold CB): WASH. Adopted for design consistency.
+V20 (directional transitions): FAIL. Hypothesis inverted — 3→2 recovers 57%, 1→2 never recovers.
+
+**V19d is the FINAL production specification.** See [[experiments/V9_TO_V19D_RESEARCH_ARC]] for the complete V9→V19d research narrative.
+
+All research tracks exhausted. Implementation track begins.
+
+
+---
+
+## April 13, 2026 — V19d Final Backtest + QQQ Tilt Test
+
+See [[experiments/V19D_FINAL_BACKTEST]] for definitive production numbers (all 11 tables, CSVs saved).
+
+**V19d-QQQ 60/30/10 tilt:** NOT PREFERRED. +0.57pp CAGR but -3.6pp MaxDD and -0.010 Sharpe. GFC DD worsens from -16.4% to -20.8%, COVID from -25.1% to -28.7%. 45/45/10 is the correct balanced split. See [[experiments/V19D_QQQ_TILT_RESULTS]].
