@@ -68,3 +68,14 @@ Streamlit dashboard for comparing strategies across experiments:
 ```
 
 Drop future experiment packages in `viz/packages/<id>/` — see `viz/README.md`.
+
+## Live execution (taxable / Robinhood)
+
+See [`live/README.md`](live/README.md) and [`research/context/V19D_LIVE_EXECUTION_SPEC.md`](research/context/V19D_LIVE_EXECUTION_SPEC.md).
+
+```bash
+.venv/bin/python -m live.parity
+.venv/bin/python -m live.slippage_stress
+.venv/bin/python -m live.watcher          # dry-run by default
+.venv/bin/streamlit run viz/app.py        # tax-drag toggle in sidebar
+```

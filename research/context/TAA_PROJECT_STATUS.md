@@ -1,6 +1,6 @@
 # TAA Project Status
 
-**Last Updated:** April 6, 2026  
+**Last Updated:** July 18, 2026  
 **Current Architecture:** Faber-Sweep-40-Daily-Weekly (daily SMAs + weekly circuit breaker + 40% leverage)  
 **Active Research Track:** Production implementation
 
@@ -54,6 +54,8 @@ The Harvey-Mulliner similarity engine was the original capital direction mechani
 | 2026-04-13 | [[experiments/V19C_FULL_UNLEVER_RESULTS]] | V19c (100% unlev at sc2): WASH. 17.41% CAGR (+0.12pp), 0.865 Sharpe (-0.002), -25.1% DD (same). Keep V19's 70/30 — marginally better Sharpe and crisis DDs. Score 2/3 occurs 14% of months. | — |
 | 2026-04-13 | [[experiments/V19D_GOLD_CB_RESULTS]] | V19d (gold CB): WASH. -0.001 Sharpe, -0.02pp CAGR, same DD. Gold CB fires 10× in 24yr. **ADOPTED for design consistency** — all risk assets now have 3/3 SMA breach → cash CB. V19d is the FINAL production spec. | — |
 | 2026-04-13 | [[experiments/V20_DIRECTIONAL_TRANSITIONS_RESULTS]] | V20 FAILS all variants. Directional hypothesis INVERTED: 3→2 recovers 57% (not declining), 1→2 never reaches 3 (0% recovery). Score-2 direction is noise. V19d's non-directional 70/30 confirmed optimal. | [[reject_directional_transitions]] | — |
+| 2026-07-18 | [[2026-07-18_marketstack_verification]] | Marketstack independent verify PASS. Extended 2000→2026: 14.18% CAGR / 0.740 Sharpe / **-40.7% MaxDD**. Structural −25% floor is a 2002-start artifact. | — |
+| 2026-07-18 | [[2026-07-18_v19d_start_date_sensitivity]] | Start-date grid (283 months): robust vs IVV/60/40; vs QQQ ~90% win to present, **99% pre-2021**. Strict backfires 5.7% (almost all 2022–23 AI bull; only older = 2009-03 hairline). MaxDD beats QQQ/IVV from every start. 10y windows 96.5% beat QQQ CAGR. | — |
 
 ## Key Findings (Cumulative)
 
@@ -798,3 +800,34 @@ V19d rerun on independently sourced Marketstack EOD data (new fetcher `data/sour
 **2026 YTD:** -0.72% vs QQQ +13.19% — one full Mar–Apr whipsaw cycle (exit, missed rebound, May re-entry +14.63%). Current state (Jul 17): QQQ 3/3, IVV 3/3, IAU 0/3 → QLD + SSO + cash, 180% effective equity.
 
 Marketstack data-quality guards required: unadjusted splits (SSO 2020/2022/2025), zero-price rows, broken pagination totals — all handled in the fetcher.
+
+
+---
+
+## July 18, 2026 — V19d Start-Date Sensitivity
+
+See [[2026-07-18_v19d_start_date_sensitivity]] (CSV: `research/data/v19d_start_date_sensitivity.csv`).
+
+**Verdict:** multi-decade / pre-2021 starts are robustly positive; short post-2021 windows vs naked QQQ are start-dependent (AI-bull catch-up), not a strategy falsification.
+
+- 283 month-starts (2000-01 → 2023-07) through 2026-07-17: V19d beats QQQ on CAGR/terminal ~90%, Sharpe ~92%, MaxDD **100%**; beats IVV ~95–97%; beats 60/40 on CAGR/terminal **100%**.
+- Pre-2021 starts: **99.2%** beat QQQ CAGR. Strict backfires (lower Term **and** Sharpe vs QQQ): 16/283 — fifteen in May 2022–Jul 2023, one hairline at 2009-03.
+- Dot-com start: worst MaxDD (−40.7%) but strong *relative* vs QQQ (+5.7pp CAGR). Absolute worst CAGRs are late-2021 / Jan-2022 starts (~10–12%).
+- Fixed 10y windows: 96.5% beat QQQ CAGR; 5y windows more mixed (15.8% strict backfires mid-cycle).
+
+
+---
+
+## July 18, 2026 — Live execution stack (taxable / Robinhood)
+
+See [[V19D_LIVE_EXECUTION_SPEC]].
+
+Deployment target shifted to **taxable Robinhood Agentic** (Schwab API blocked; official Robinhood Trading MCP at `https://agent.robinhood.com/mcp/trading`).
+
+Built under `live/`:
+- Trust stages 0–4, slip budgets, CB pre-auth / buy approve matrix
+- Taxable wash-sale clock (31d) + Streamlit **tax-drag toggle**
+- Paper watcher (`python -m live.watcher`), signal parity, CB slippage stress report
+- Broker dry-run by default; live path gated on MCP + `LIVE_TRADING=1`
+
+**Next human steps:** connect Robinhood MCP OAuth, fund Agentic with tiny capital ($1–2.5K), run Stages 0–2 before any live CB sell.

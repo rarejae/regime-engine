@@ -23,3 +23,4 @@ data/processed/
 data/raw/optionsdx/*.7z
 data/raw/marketstack/
 experiments/*/yf_cache.parquet
+live/runtime/

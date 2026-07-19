@@ -27,6 +27,7 @@ if str(_ROOT) not in sys.path:
 
 from viz.metrics import (
     CRISIS_WINDOWS,
+    cagr,
     crisis_drawdowns,
     dca_path,
     dca_terminal,
@@ -35,6 +36,7 @@ from viz.metrics import (
     metrics_from_daily,
 )
 from viz.schema import REQUIRED_FILES
+from live.tax import after_tax_monthly_returns, effective_gain_rate
 
 ROOT = Path(__file__).resolve().parent
 PACKAGES = ROOT / "packages"
@@ -311,6 +313,15 @@ with st.sidebar:
     )
     log_scale = st.checkbox("Log scale equity curve", value=True)
 
+    st.divider()
+    st.header("Tax drag (taxable)")
+    apply_tax = st.toggle("Show after-tax estimate", value=True)
+    ordinary = st.slider("Federal ordinary rate", 0.0, 0.45, 0.32, 0.01)
+    ltcg_rate = st.slider("Federal LTCG rate", 0.0, 0.25, 0.15, 0.01)
+    state_tax = st.slider("State tax rate", 0.0, 0.15, 0.05, 0.005)
+    stcg_frac = st.slider("Share of gains taxed as short-term", 0.0, 1.0, 0.80, 0.05)
+    st.caption("Sensitivity model for taxable V19d — not tax advice. See live/tax.py.")
+
 # Slice data
 daily = daily_full.loc[str(start_d):str(end_d), selected].dropna(how="all")
 monthly = monthly_full.loc[str(start_d):str(end_d), selected].dropna(how="all")
@@ -359,6 +370,56 @@ display["Calmar"] = display["Calmar"].map(lambda x: fmt_num(x, 2))
 display["Terminal $1"] = display["Terminal $1"].map(fmt_usd)
 display["DCA terminal"] = display["DCA terminal"].map(fmt_usd)
 st.dataframe(display, use_container_width=True)
+
+if apply_tax:
+    st.subheader("After-tax sensitivity (taxable account)")
+    blend = effective_gain_rate(ordinary, ltcg_rate, state_tax, stcg_frac)
+    st.caption(f"Blended marginal rate on realized gains ≈ **{blend:.1%}** "
+               f"(STCG frac {stcg_frac:.0%}). Haircuts positive months only.")
+    tax_rows = []
+    at_monthly = {}
+    for sid in selected:
+        pre_dca = dca_terminal(monthly[sid].dropna(), start_cap, monthly_contrib, convention=convention)
+        at = after_tax_monthly_returns(
+            monthly[sid],
+            state if sid == "v19d" else None,
+            ordinary, ltcg_rate, state_tax, stcg_frac,
+        )
+        at_monthly[sid] = at
+        pre_term = float((1 + monthly[sid].dropna()).prod())
+        at_term = float((1 + at).prod()) if len(at) else float("nan")
+        tax_rows.append({
+            "Strategy": smap[sid]["name"],
+            "CAGR pre (daily)": fmt_pct(metrics_from_daily(daily[sid].dropna())["CAGR"]),
+            "CAGR after-tax approx": fmt_pct(cagr(at, "monthly")),
+            "Terminal $1 pre": fmt_usd(pre_term),
+            "Terminal $1 after-tax": fmt_usd(at_term),
+            "DCA pre": fmt_usd(pre_dca),
+            "DCA after-tax": fmt_usd(dca_terminal(at, start_cap, monthly_contrib, convention=convention)),
+            "Drag on terminal": fmt_pct((at_term / pre_term - 1) if pre_term else float("nan"), 1),
+        })
+    st.dataframe(pd.DataFrame(tax_rows).set_index("Strategy"), use_container_width=True)
+
+    fig_tax = go.Figure()
+    for sid in selected:
+        pre_path = dca_path(monthly[sid], start_cap, monthly_contrib, convention)
+        at_path = dca_path(at_monthly[sid], start_cap, monthly_contrib, convention)
+        fig_tax.add_trace(go.Scatter(
+            x=pre_path.index, y=pre_path.values, name=f"{smap[sid]['name']} pre-tax",
+            line=dict(color=smap[sid].get("color"), width=2),
+        ))
+        fig_tax.add_trace(go.Scatter(
+            x=at_path.index, y=at_path.values, name=f"{smap[sid]['name']} after-tax",
+            line=dict(color=smap[sid].get("color"), width=2, dash="dash"),
+        ))
+    fig_tax.update_layout(
+        title="DCA wealth — pre-tax vs after-tax estimate",
+        yaxis_title="Portfolio value ($)",
+        height=420,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02),
+        hovermode="x unified",
+    )
+    st.plotly_chart(fig_tax, use_container_width=True)
 
 # Crisis table
 st.subheader("Crisis drawdowns")
