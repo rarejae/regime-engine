@@ -57,3 +57,14 @@ Ranked by leverage per dollar of data cost:
 
 Dead ends are catalogued in the research arc doc — do not re-explore without
 new evidence.
+
+## Experiment visualizer
+
+Streamlit dashboard for comparing strategies across experiments:
+
+```bash
+.venv/bin/python viz/export_v19d_marketstack.py   # once, or after new runs
+.venv/bin/streamlit run viz/app.py
+```
+
+Drop future experiment packages in `viz/packages/<id>/` — see `viz/README.md`.

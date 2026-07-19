@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "experiment_id": "v19d_marketstack_verification",
+  "title": "V19d Marketstack Verification",
+  "description": "V19d (two-pod + gold, CB\u2192cash) verified on Marketstack EOD data spliced with yfinance before 2016-08. Includes standard baselines.",
+  "generated": "2026-07-19T02:06:31.875617+00:00",
+  "date_start": "2000-01-01",
+  "date_end": "2026-07-17",
+  "primary_strategy": "v19d",
+  "strategies": [
+    {
+      "id": "v19d",
+      "name": "V19d",
+      "kind": "strategy",
+      "color": "#2563eb"
+    },
+    {
+      "id": "ivv_bh",
+      "name": "IVV B&H",
+      "kind": "benchmark",
+      "color": "#64748b"
+    },
+    {
+      "id": "qqq_bh",
+      "name": "QQQ B&H",
+      "kind": "benchmark",
+      "color": "#0ea5e9"
+    },
+    {
+      "id": "blend_5050",
+      "name": "50/50 IVV/QQQ",
+      "kind": "benchmark",
+      "color": "#8b5cf6"
+    },
+    {
+      "id": "sixty_forty",
+      "name": "60/40 (IVV/TLT)",
+      "kind": "benchmark",
+      "color": "#f59e0b"
+    }
+  ],
+  "data_notes": "Marketstack 2016-08\u2192present; yfinance before. Proxies: IVV\u2192SPY, IAU\u2192GLD, VGLT\u2192TLT. 60/40 uses TLT; pre-TLT bond sleeve earns T-bills.",
+  "source_experiment": "experiments/v19d_marketstack_verification",
+  "related_note": "research/experiments/2026-07-18_marketstack_verification.md",
+  "rebalances": 19,
+  "cb_events_total": 41
+}

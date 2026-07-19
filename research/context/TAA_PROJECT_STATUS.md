@@ -781,3 +781,20 @@ All research tracks exhausted. Implementation track begins.
 See [[experiments/V19D_FINAL_BACKTEST]] for definitive production numbers (all 11 tables, CSVs saved).
 
 **V19d-QQQ 60/30/10 tilt:** NOT PREFERRED. +0.57pp CAGR but -3.6pp MaxDD and -0.010 Sharpe. GFC DD worsens from -16.4% to -20.8%, COVID from -25.1% to -28.7%. 45/45/10 is the correct balanced split. See [[experiments/V19D_QQQ_TILT_RESULTS]].
+
+
+---
+
+## July 18, 2026 — Independent Data Verification (Marketstack): PASS
+
+See [[experiments/2026-07-18_marketstack_verification]] for full detail.
+
+V19d rerun on independently sourced Marketstack EOD data (new fetcher `data/sources/marketstack.py`), spliced with yfinance before 2016-08 (vendor history cap). Quality gate reproduced locked numbers: 17.19% CAGR / 0.876 Sharpe / -25.1% MaxDD vs locked 17.27% / 0.866 / -25.1%.
+
+**Extended run 2000-01 → 2026-07-17:** 14.18% CAGR, 0.740 Sharpe, **-40.7% MaxDD**, $4.70M DCA — vs QQQ B&H 8.52% CAGR / 0.439 Sharpe / -83.0% DD.
+
+**Key honest finding: the -25.1% "structural floor" is a 2002-start artifact.** Starting at the dot-com top (with SMAs barely warmed — QQQ's 252-day SMA first valid 2000-03-07, three weeks before the peak), realized MaxDD was -40.7%. Sizing should assume ~-40%.
+
+**2026 YTD:** -0.72% vs QQQ +13.19% — one full Mar–Apr whipsaw cycle (exit, missed rebound, May re-entry +14.63%). Current state (Jul 17): QQQ 3/3, IVV 3/3, IAU 0/3 → QLD + SSO + cash, 180% effective equity.
+
+Marketstack data-quality guards required: unadjusted splits (SSO 2020/2022/2025), zero-price rows, broken pagination totals — all handled in the fetcher.
