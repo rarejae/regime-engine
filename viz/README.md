@@ -27,6 +27,7 @@ plug-and-play: export a package, drop it in `packages/`, reopen.
 
 - Strategy comparison across whichever package you select in the sidebar
 - Metrics from daily returns (CAGR, Vol, Sharpe, Sortino, MaxDD, Calmar, Terminal $1)
+- Custom starting principal + monthly contribution (free-form; wealth path + terminal)
 - Equity curve, drawdown, annual returns, crisis table
 - Allocation state and circuit-breaker event log (when the package provides them)
 - Optional after-tax sensitivity toggle
