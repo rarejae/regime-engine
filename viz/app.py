@@ -29,8 +29,6 @@ from viz.metrics import (
     CRISIS_WINDOWS,
     cagr,
     crisis_drawdowns,
-    dca_path,
-    dca_terminal,
     drawdown_curve,
     equity_curve,
     metrics_from_daily,
@@ -40,13 +38,6 @@ from live.tax import after_tax_monthly_returns, effective_gain_rate
 
 ROOT = Path(__file__).resolve().parent
 PACKAGES = ROOT / "packages"
-
-PRESETS = {
-    "Vault default ($21K + $700/mo)": {"start": 21_000, "contrib": 700},
-    "Small ($10K + $500/mo)": {"start": 10_000, "contrib": 500},
-    "Aggressive ($50K + $2,000/mo)": {"start": 50_000, "contrib": 2_000},
-    "Lump sum only ($21K, $0/mo)": {"start": 21_000, "contrib": 0},
-}
 
 
 # ── Package I/O ──────────────────────────────────────────────────────────────
@@ -150,37 +141,6 @@ def chart_drawdown(daily: pd.DataFrame, selected: list[str], smap: dict):
     return fig
 
 
-def chart_dca(monthly: pd.DataFrame, selected: list[str], smap: dict,
-              start: float, contrib: float, convention: str):
-    fig = go.Figure()
-    for sid in selected:
-        path = dca_path(monthly[sid], start=start, contrib=contrib, convention=convention)
-        fig.add_trace(go.Scatter(
-            x=path.index, y=path.values, name=smap[sid]["name"],
-            line=dict(color=smap[sid].get("color"), width=2),
-            hovertemplate="%{x|%Y-%m}<br>$%{y:,.0f}<extra></extra>",
-        ))
-    # contributions invested (no return) as reference
-    n = len(monthly)
-    if n and selected:
-        idx = monthly.index
-        invested = [start + contrib * (i + 1) for i in range(len(idx))]
-        fig.add_trace(go.Scatter(
-            x=idx, y=invested, name="Contributions only",
-            line=dict(color="#94a3b8", width=1.5, dash="dot"),
-            hovertemplate="%{x|%Y-%m}<br>$%{y:,.0f}<extra></extra>",
-        ))
-    fig.update_layout(
-        title=f"DCA wealth — ${start:,.0f} start + ${contrib:,.0f}/mo",
-        yaxis_title="Portfolio value ($)",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02),
-        margin=dict(l=40, r=20, t=60, b=40),
-        height=420,
-        hovermode="x unified",
-    )
-    return fig
-
-
 def chart_annual(daily: pd.DataFrame, selected: list[str], smap: dict):
     years = sorted(set(daily.index.year))
     fig = go.Figure()
@@ -246,7 +206,7 @@ st.set_page_config(
 )
 
 st.title("TAA Experiment Visualizer")
-st.caption("Plug-and-play dashboard for regime-engine experiments. Drop a package in `viz/packages/` to add a run.")
+st.caption("Backtest comparison for regime-engine experiments. Drop a package in `viz/packages/` to add a run.")
 
 packages = list_packages()
 if not packages:
@@ -296,31 +256,16 @@ with st.sidebar:
         st.warning("Select at least one strategy")
         st.stop()
 
-    st.divider()
-    st.header("Contributions (DCA)")
-    preset_name = st.selectbox("Preset", list(PRESETS.keys()))
-    preset = PRESETS[preset_name]
-    start_cap = st.number_input("Starting capital ($)", min_value=0, value=int(preset["start"]), step=1000)
-    monthly_contrib = st.number_input("Monthly contribution ($)", min_value=0, value=int(preset["contrib"]), step=50)
-    convention = st.radio(
-        "DCA convention",
-        options=["earn_then_contribute", "vault"],
-        format_func=lambda x: {
-            "earn_then_contribute": "Earn then contribute (recommended)",
-            "vault": "Vault convention (matches published notes)",
-        }[x],
-        index=0,
-    )
     log_scale = st.checkbox("Log scale equity curve", value=True)
 
     st.divider()
     st.header("Tax drag (taxable)")
-    apply_tax = st.toggle("Show after-tax estimate", value=True)
+    apply_tax = st.toggle("Show after-tax estimate", value=False)
     ordinary = st.slider("Federal ordinary rate", 0.0, 0.45, 0.32, 0.01)
     ltcg_rate = st.slider("Federal LTCG rate", 0.0, 0.25, 0.15, 0.01)
     state_tax = st.slider("State tax rate", 0.0, 0.15, 0.05, 0.005)
     stcg_frac = st.slider("Share of gains taxed as short-term", 0.0, 1.0, 0.80, 0.05)
-    st.caption("Sensitivity model for taxable V19d — not tax advice. See live/tax.py.")
+    st.caption("Sensitivity model — not tax advice. See live/tax.py.")
 
 # Slice data
 daily = daily_full.loc[str(start_d):str(end_d), selected].dropna(how="all")
@@ -334,7 +279,6 @@ if state is not None:
 rows = []
 for sid in selected:
     m = metrics_from_daily(daily[sid].dropna())
-    dca = dca_terminal(monthly[sid].dropna(), start_cap, monthly_contrib, convention=convention)
     rows.append({
         "Strategy": smap[sid]["name"],
         "CAGR": m["CAGR"],
@@ -344,21 +288,18 @@ for sid in selected:
         "MaxDD": m["MaxDD"],
         "Calmar": m["Calmar"],
         "Terminal $1": m["Terminal_$1"],
-        "DCA terminal": dca,
     })
 metrics_df = pd.DataFrame(rows).set_index("Strategy")
 
 st.subheader("Performance")
-# Primary strategy highlight cards
 primary = meta.get("primary_strategy")
 if primary in selected:
     pm = metrics_df.loc[smap[primary]["name"]]
-    c1, c2, c3, c4, c5 = st.columns(5)
+    c1, c2, c3, c4 = st.columns(4)
     c1.metric("CAGR", fmt_pct(pm["CAGR"]))
     c2.metric("Sharpe", fmt_num(pm["Sharpe"]))
     c3.metric("Max DD", fmt_pct(pm["MaxDD"], 1))
     c4.metric("Terminal $1", fmt_usd(pm["Terminal $1"]))
-    c5.metric("DCA terminal", fmt_usd(pm["DCA terminal"]))
 
 display = metrics_df.copy()
 display["CAGR"] = display["CAGR"].map(lambda x: fmt_pct(x))
@@ -368,7 +309,6 @@ display["Sortino"] = display["Sortino"].map(lambda x: fmt_num(x))
 display["MaxDD"] = display["MaxDD"].map(lambda x: fmt_pct(x, 1))
 display["Calmar"] = display["Calmar"].map(lambda x: fmt_num(x, 2))
 display["Terminal $1"] = display["Terminal $1"].map(fmt_usd)
-display["DCA terminal"] = display["DCA terminal"].map(fmt_usd)
 st.dataframe(display, use_container_width=True)
 
 if apply_tax:
@@ -379,7 +319,6 @@ if apply_tax:
     tax_rows = []
     at_monthly = {}
     for sid in selected:
-        pre_dca = dca_terminal(monthly[sid].dropna(), start_cap, monthly_contrib, convention=convention)
         at = after_tax_monthly_returns(
             monthly[sid],
             state if sid == "v19d" else None,
@@ -394,27 +333,25 @@ if apply_tax:
             "CAGR after-tax approx": fmt_pct(cagr(at, "monthly")),
             "Terminal $1 pre": fmt_usd(pre_term),
             "Terminal $1 after-tax": fmt_usd(at_term),
-            "DCA pre": fmt_usd(pre_dca),
-            "DCA after-tax": fmt_usd(dca_terminal(at, start_cap, monthly_contrib, convention=convention)),
             "Drag on terminal": fmt_pct((at_term / pre_term - 1) if pre_term else float("nan"), 1),
         })
     st.dataframe(pd.DataFrame(tax_rows).set_index("Strategy"), use_container_width=True)
 
     fig_tax = go.Figure()
     for sid in selected:
-        pre_path = dca_path(monthly[sid], start_cap, monthly_contrib, convention)
-        at_path = dca_path(at_monthly[sid], start_cap, monthly_contrib, convention)
+        pre_eq = equity_curve(monthly[sid].dropna())
+        at_eq = equity_curve(at_monthly[sid].dropna())
         fig_tax.add_trace(go.Scatter(
-            x=pre_path.index, y=pre_path.values, name=f"{smap[sid]['name']} pre-tax",
+            x=pre_eq.index, y=pre_eq.values, name=f"{smap[sid]['name']} pre-tax",
             line=dict(color=smap[sid].get("color"), width=2),
         ))
         fig_tax.add_trace(go.Scatter(
-            x=at_path.index, y=at_path.values, name=f"{smap[sid]['name']} after-tax",
+            x=at_eq.index, y=at_eq.values, name=f"{smap[sid]['name']} after-tax",
             line=dict(color=smap[sid].get("color"), width=2, dash="dash"),
         ))
     fig_tax.update_layout(
-        title="DCA wealth — pre-tax vs after-tax estimate",
-        yaxis_title="Portfolio value ($)",
+        title="Growth of $1 — pre-tax vs after-tax estimate",
+        yaxis_title="Terminal wealth ($)",
         height=420,
         legend=dict(orientation="h", yanchor="bottom", y=1.02),
         hovermode="x unified",
@@ -432,10 +369,6 @@ st.dataframe(pd.DataFrame(crisis_rows).set_index("Strategy"), use_container_widt
 # Charts
 st.plotly_chart(chart_equity(daily, selected, smap, log_scale), use_container_width=True)
 st.plotly_chart(chart_drawdown(daily, selected, smap), use_container_width=True)
-st.plotly_chart(
-    chart_dca(monthly, selected, smap, start_cap, monthly_contrib, convention),
-    use_container_width=True,
-)
 st.plotly_chart(chart_annual(daily, selected, smap), use_container_width=True)
 
 # State / CB for primary strategy
@@ -455,7 +388,5 @@ with st.expander("About this package"):
     st.json({k: meta[k] for k in meta if k != "strategies"})
     st.markdown(
         "**Metrics:** CAGR / Vol / Sharpe / Sortino / Calmar annualized from **daily** "
-        "returns (252). DCA paths use **monthly** returns. "
-        "Vault DCA convention skips month-0 return to match published research notes; "
-        "prefer *Earn then contribute* for new analysis."
+        "returns (252 trading days). Charts show lump-sum growth of $1."
     )

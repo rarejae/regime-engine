@@ -1,81 +1,62 @@
 # regime-engine
 
-Quantitative TAA (tactical asset allocation) research repo. Roughly 50 logged
-experiments (April 2026) that evolved a two-engine macro system into the locked
-**V19d** production strategy: two Faber trend-gated 2x equity pods plus a gold
-sleeve, with per-asset circuit breakers that exit to cash.
+Research and backtesting for a **tactical asset allocation** (TAA) system built around Faber trend filters, leveraged equity ETFs, and cash as the defensive hedge.
 
-**Start here:**
+After ~50 logged experiments, the locked candidate strategy is **V19d**: two independent Faber-gated 2× equity pods (QLD / SSO) plus a gold sleeve, with per-asset circuit breakers that exit to cash.
 
-- [research/context/V19D_PRODUCTION_SPEC.md](research/context/V19D_PRODUCTION_SPEC.md) — the locked production spec
-- [research/experiments/V9_TO_V19D_RESEARCH_ARC.md](research/experiments/V9_TO_V19D_RESEARCH_ARC.md) — full research narrative
-- [research/context/TAA_PROJECT_STATUS.md](research/context/TAA_PROJECT_STATUS.md) — chronological research timeline
-- [CLAUDE.md](CLAUDE.md) — experiment protocol (signal alignment rules, vault workflow)
+| Metric (2002–2026) | V19d |
+|--------------------|-----:|
+| CAGR | 17.3% |
+| Sharpe | 0.87 |
+| Max drawdown | −25.1%* |
 
-V19d validated performance (2002–2026): 17.27% CAGR, 0.866 Sharpe, -25.1% MaxDD.
+\*Extended history from 2000 shows deeper drawdowns (~−40%). See the research notes.
 
-## Repo map
+## Live dashboard
 
-### Active
+**[Open the Streamlit visualizer →](https://rarejae-regime-engine.streamlit.app)**
 
-| Path | Purpose |
-|------|---------|
-| `research/` | Obsidian vault — experiment results, decisions, context docs. Open as a vault to browse the knowledge graph. |
-| `experiments/` | One folder per experiment, each with its own `backtest.py`. Mirrors `research/experiments/` notes. |
-| `taa/` | TAA engine modules (Faber signals, allocation, leverage). Production implementation track. |
-| `validation/` | Robustness suite (bootstrap CIs, sensitivity analysis, look-ahead audits). |
-| `data/` | Fetchers (`fetcher.py`, `sources/`) and processed series. Bulk parquet/7z files are local-only (gitignored); regenerate via `data/fetcher.py` and `data/ingest_optionsdx.py`. |
+Compare V19d against buy-and-hold benchmarks, inspect drawdowns, crisis windows, and allocation state.
 
-### Legacy (superseded, kept for reference)
-
-| Path | What it was | Why retired |
-|------|-------------|-------------|
-| `regime/`, `engine/` | Harvey-Mulliner similarity engine + Kritzman relevance engine | All macro engines destroy Sharpe vs Faber-only. See `research/context/KRITZMAN_RESEARCH_FINDINGS.md`. |
-| `hmm/` | Gaussian HMM regime detection | State labeling unstable across refits; removing it had negligible impact. See `RESEARCH_HISTORY.md`. |
-| `taa_v2/` | Signal-driven allocation without baseline weights | Underperformed — baseline weights are a feature. |
-| `main.py`, `run_*.py`, `dashboard/` | Entry points and dashboard for the old regime engine | Tied to the retired macro engines. |
-| `RESEARCH_HISTORY.md` | Findings from the pre-vault era (Faber-Harvey system) | Superseded by the vault; still the record of HMM/ensemble/carry rejections. |
-
-The successor production repo scaffold lives at `~/Projects/faber-harvey-system`
-(see git history for `migrate_manifest.txt`, which mapped the migration).
-
-## Deferred research tracks (next up)
-
-Ranked by leverage per dollar of data cost:
-
-1. **Vol-managed overlay (Moreira & Muir 2017)** — scale the 2x exposure by
-   inverse realized variance. Zero new data; attacks V19d's known weakness
-   (first month of a crash at 180% effective equity).
-2. **Managed futures pod** — DBMF (2019+) / KMLM (2020+) NAVs via yfinance,
-   extended with the free SG Trend Index and the AQR TSMOM series already in
-   `data/raw/aqr_tsmom_monthly.csv`. See `experiments/managed_futures_proxy/`.
-3. **Merger arb pod** — MERFX daily NAV (free, 1989+) as the pod return stream;
-   no HFRI subscription or deal-level data needed.
-4. **Kritzman turbulence as a cross-pod risk layer** — rejected for Faber+VRP
-   (too correlated), untested over genuinely uncorrelated pods. See
-   `research/context/MULTI_POD_ARCHITECTURE.md`.
-
-Dead ends are catalogued in the research arc doc — do not re-explore without
-new evidence.
-
-## Experiment visualizer
-
-Streamlit dashboard for comparing strategies across experiments:
+Run locally:
 
 ```bash
-.venv/bin/python viz/export_v19d_marketstack.py   # once, or after new runs
 .venv/bin/streamlit run viz/app.py
 ```
 
-Drop future experiment packages in `viz/packages/<id>/` — see `viz/README.md`.
+## What's in this repo
 
-## Live execution (taxable / Robinhood)
+| Path | Purpose |
+|------|---------|
+| [`research/`](research/) | Experiment write-ups, decisions, and the production spec |
+| [`experiments/`](experiments/) | Backtest scripts (one folder per experiment) |
+| [`viz/`](viz/) | Streamlit dashboard + exported result packages |
+| [`taa/`](taa/) | Signal / allocation engine modules |
+| [`validation/`](validation/) | Robustness checks (bootstrap, sensitivity, look-ahead audits) |
+| [`data/`](data/) | Data fetchers and sources |
 
-See [`live/README.md`](live/README.md) and [`research/context/V19D_LIVE_EXECUTION_SPEC.md`](research/context/V19D_LIVE_EXECUTION_SPEC.md).
+### Start reading
+
+1. [`research/context/V19D_PRODUCTION_SPEC.md`](research/context/V19D_PRODUCTION_SPEC.md) — locked strategy rules
+2. [`research/experiments/V9_TO_V19D_RESEARCH_ARC.md`](research/experiments/V9_TO_V19D_RESEARCH_ARC.md) — how the design evolved
+3. [`research/context/TAA_PROJECT_STATUS.md`](research/context/TAA_PROJECT_STATUS.md) — full research timeline
+
+## Core idea
+
+- **Trend filter** decides when each risk asset is eligible (price vs long SMAs)
+- **Cash** absorbs freed capital when signals are off — not “defensive” substitutes
+- **Leverage** (QLD / SSO) only when the trend is confirmed
+- **Circuit breakers** exit a sleeve to cash if price falls below all SMAs mid-month
+
+Macro return forecasts, portfolio-level stop overlays, and most complexity add-ons were tested and rejected. Details live under `research/decisions/` and the experiment notes.
+
+## Setup
 
 ```bash
-.venv/bin/python -m live.parity
-.venv/bin/python -m live.slippage_stress
-.venv/bin/python -m live.watcher          # dry-run by default
-.venv/bin/streamlit run viz/app.py        # tax-drag toggle in sidebar
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # add API keys only if regenerating market data
 ```
+
+Bulk market data is gitignored; regenerate via `data/fetcher.py` when needed. The Streamlit app ships with a committed result package under `viz/packages/`.

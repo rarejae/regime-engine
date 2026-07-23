@@ -166,7 +166,7 @@ def main():
     print(f"  Actual QLD/SSO from: {both_start.date()} (simulated 2x before)")
     print(f"  Marketstack coverage: {SPLICE_DATE.date()} → {end_date.date()}; yfinance before")
 
-    # ── Signal alignment assertion (CLAUDE.md requirement) ──
+    # ── Signal alignment assertion ──
     # SMA at day t must use closes through day t only (no look-ahead).
     # Scores at month start use the prior trading day — enforced inside
     # run_v19d_full via prior[-1].

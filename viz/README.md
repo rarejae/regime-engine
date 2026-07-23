@@ -1,26 +1,28 @@
 # TAA Experiment Visualizer
 
-Streamlit dashboard for comparing strategy backtests. Designed so future
-experiments are plug-and-play: export a package, drop it in `packages/`, reopen.
+Streamlit dashboard for comparing strategy backtests. Future experiments are
+plug-and-play: export a package, drop it in `packages/`, reopen.
+
+**Live:** [rarejae-regime-engine.streamlit.app](https://rarejae-regime-engine.streamlit.app)
 
 ## Quick start
 
 ```bash
-# 1. Export the latest Marketstack verification package (needs network + .env keys)
+# Optional: refresh the Marketstack verification package (needs network + .env keys)
 .venv/bin/python viz/export_v19d_marketstack.py
 
-# 2. Launch
+# Launch locally
 .venv/bin/streamlit run viz/app.py
 ```
 
 ## What's included
 
-- Strategy comparison: V19d, IVV B&H, QQQ B&H, 50/50 IVV/QQQ, 60/40
+- Strategy comparison: V19d vs IVV / QQQ / 50/50 / 60/40
 - Metrics from daily returns (CAGR, Vol, Sharpe, Sortino, MaxDD, Calmar, Terminal $1)
-- DCA / contributions: presets + interactive start capital and monthly contribution
 - Equity curve, drawdown, annual returns, crisis table
-- V19d allocation state (effective equity + Faber scores) and CB event log
-- Date-range filter (default: full package window, e.g. 2000→present)
+- V19d allocation state and circuit-breaker event log
+- Optional after-tax sensitivity toggle
+- Date-range filter (default: full package window)
 
 ## Adding a future experiment
 

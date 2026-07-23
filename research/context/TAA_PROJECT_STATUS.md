@@ -1,8 +1,8 @@
 # TAA Project Status
 
-**Last Updated:** July 18, 2026  
-**Current Architecture:** Faber-Sweep-40-Daily-Weekly (daily SMAs + weekly circuit breaker + 40% leverage)  
-**Active Research Track:** Production implementation
+**Last Updated:** July 22, 2026  
+**Current Architecture:** V19d (production candidate) | SFE = a priori principle benchmark  
+**Active Research Track:** Production implementation + principle baseline
 
 ## Current State
 
@@ -56,6 +56,7 @@ The Harvey-Mulliner similarity engine was the original capital direction mechani
 | 2026-04-13 | [[experiments/V20_DIRECTIONAL_TRANSITIONS_RESULTS]] | V20 FAILS all variants. Directional hypothesis INVERTED: 3→2 recovers 57% (not declining), 1→2 never reaches 3 (0% recovery). Score-2 direction is noise. V19d's non-directional 70/30 confirmed optimal. | [[reject_directional_transitions]] | — |
 | 2026-07-18 | [[2026-07-18_marketstack_verification]] | Marketstack independent verify PASS. Extended 2000→2026: 14.18% CAGR / 0.740 Sharpe / **-40.7% MaxDD**. Structural −25% floor is a 2002-start artifact. | — |
 | 2026-07-18 | [[2026-07-18_v19d_start_date_sensitivity]] | Start-date grid (283 months): robust vs IVV/60/40; vs QQQ ~90% win to present, **99% pre-2021**. Strict backfires 5.7% (almost all 2022–23 AI bull; only older = 2009-03 hairline). MaxDD beats QQQ/IVV from every start. 10y windows 96.5% beat QQQ CAGR. | — |
+| 2026-07-22 | [[2026-07-22_sfe_simple_faber_equal]] | A priori SFE (1/3 QLD/SSO/GLD, classic 10-mo Faber, cash when off): 12.3% CAGR / 0.703 Sharpe / -34.9% MaxDD (2000–2026). Beats QQQ/SPY on Sharpe+DD without V19d ornaments. COVID ≈ QQQ (−28.7%) — no CB. Principle validated; V19d = tuned overlay on this skeleton. | — |
 
 ## Key Findings (Cumulative)
 
@@ -831,3 +832,19 @@ Built under `live/`:
 - Broker dry-run by default; live path gated on MCP + `LIVE_TRADING=1`
 
 **Next human steps:** connect Robinhood MCP OAuth, fund Agentic with tiny capital ($1–2.5K), run Stages 0–2 before any live CB sell.
+
+
+---
+
+## July 22, 2026 — Simple Faber Equal (SFE): Principle Benchmark
+
+See [[2026-07-22_sfe_simple_faber_equal]].
+
+A priori system (no V19d knobs): 1/3 QLD + 1/3 SSO + 1/3 GLD, classic 10-month Faber binary, cash when off, monthly only. yfinance full history.
+
+| Window | CAGR | Sharpe | MaxDD |
+|--------|-----:|-------:|------:|
+| 2000-02 → 2026-07 | 12.25% | 0.703 | -34.9% |
+| 2002-01 → 2026-07 | 13.84% | 0.791 | -28.7% |
+
+Beats QQQ/SPY on Sharpe and MaxDD without triple-SMA, guards, or CB. COVID DD −28.7% ≈ QQQ (no intra-month exit). **Principle validated.** SFE is now the simplicity floor any tuned system must beat.
