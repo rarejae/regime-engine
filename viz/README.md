@@ -8,19 +8,27 @@ plug-and-play: export a package, drop it in `packages/`, reopen.
 ## Quick start
 
 ```bash
-# Optional: refresh the Marketstack verification package (needs network + .env keys)
+# Optional: refresh packages (needs network + .env keys for Marketstack export)
 .venv/bin/python viz/export_v19d_marketstack.py
+.venv/bin/python viz/export_sfe_series.py
 
 # Launch locally
 .venv/bin/streamlit run viz/app.py
 ```
 
+## Packages included
+
+| Package | Contents |
+|---------|----------|
+| `v19d_marketstack_verification` | Locked V19d vs buy-and-hold baselines |
+| `sfe_principle_series` | SFE 1/3, SFE 45/45/10, SFEv3 (+CB) vs QQQ/SPY/60-40 |
+
 ## What's included
 
-- Strategy comparison: V19d vs IVV / QQQ / 50/50 / 60/40
+- Strategy comparison across whichever package you select in the sidebar
 - Metrics from daily returns (CAGR, Vol, Sharpe, Sortino, MaxDD, Calmar, Terminal $1)
 - Equity curve, drawdown, annual returns, crisis table
-- V19d allocation state and circuit-breaker event log
+- Allocation state and circuit-breaker event log (when the package provides them)
 - Optional after-tax sensitivity toggle
 - Date-range filter (default: full package window)
 

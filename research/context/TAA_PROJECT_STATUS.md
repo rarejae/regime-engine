@@ -57,6 +57,8 @@ The Harvey-Mulliner similarity engine was the original capital direction mechani
 | 2026-07-18 | [[2026-07-18_marketstack_verification]] | Marketstack independent verify PASS. Extended 2000→2026: 14.18% CAGR / 0.740 Sharpe / **-40.7% MaxDD**. Structural −25% floor is a 2002-start artifact. | — |
 | 2026-07-18 | [[2026-07-18_v19d_start_date_sensitivity]] | Start-date grid (283 months): robust vs IVV/60/40; vs QQQ ~90% win to present, **99% pre-2021**. Strict backfires 5.7% (almost all 2022–23 AI bull; only older = 2009-03 hairline). MaxDD beats QQQ/IVV from every start. 10y windows 96.5% beat QQQ CAGR. | — |
 | 2026-07-22 | [[2026-07-22_sfe_simple_faber_equal]] | A priori SFE (1/3 QLD/SSO/GLD, classic 10-mo Faber, cash when off): 12.3% CAGR / 0.703 Sharpe / -34.9% MaxDD (2000–2026). Beats QQQ/SPY on Sharpe+DD without V19d ornaments. COVID ≈ QQQ (−28.7%) — no CB. Principle validated; V19d = tuned overlay on this skeleton. | — |
+| 2026-07-22 | [[2026-07-22_sfe_45_45_10_gold_cap]] | Same Faber, gold capped at 10% (45/45/10): +1.05pp CAGR / +$5.9 term vs equal SFE, but Sharpe −0.076 and MaxDD −11.6pp (COVID −35%). Gold weight is a risk dial; still no CB. | — |
+| 2026-07-22 | [[2026-07-22_sfev3_cb]] | SFEv3 = 45/45/10 + daily 3/3 SMA CB→cash: COVID −27% (vs −35% no CB) but full-sample worse (11.5% CAGR, −53.5% DD from 2000). Post-2002 ≈ Sharpe wash, −1pp CAGR, +2.5pp MaxDD. CB = crash insurance with whipsaw premium; does not close V19d gap. | — |
 
 ## Key Findings (Cumulative)
 
@@ -848,3 +850,30 @@ A priori system (no V19d knobs): 1/3 QLD + 1/3 SSO + 1/3 GLD, classic 10-month F
 | 2002-01 → 2026-07 | 13.84% | 0.791 | -28.7% |
 
 Beats QQQ/SPY on Sharpe and MaxDD without triple-SMA, guards, or CB. COVID DD −28.7% ≈ QQQ (no intra-month exit). **Principle validated.** SFE is now the simplicity floor any tuned system must beat.
+
+### Follow-up: gold at 10% (45/45/10)
+
+See [[2026-07-22_sfe_45_45_10_gold_cap]]. Same signals; sleeves 45/45/10.
+
+| | Equal 1/3 | 45/45/10 |
+|--|----------:|---------:|
+| CAGR | 12.25% | **13.30%** |
+| Sharpe | **0.703** | 0.627 |
+| MaxDD | **-34.9%** | -46.5% |
+| Mean eff equity | 98% | **132%** |
+| COVID DD | -28.7% | -35.1% |
+
+Gold weight is a risk dial: less gold → more return and deeper drawdowns. Remaining gap to V19d is still mostly CB / path, not gold alone.
+
+### Follow-up: SFEv3 (+ daily CB)
+
+See [[2026-07-22_sfev3_cb]]. 45/45/10 + V19d-style CB (below all 126/200/252 → cash next session).
+
+| | 45/45/10 | SFEv3 + CB |
+|--|---------:|-----------:|
+| Full CAGR / Sharpe / MaxDD | **13.3% / 0.63 / −47%** | 11.5% / 0.59 / −54% |
+| COVID DD | −35.1% | **−27.0%** |
+| 2002+ MaxDD | −35.1% | **−32.6%** |
+| 2026 YTD | −4.2% | −8.2% |
+
+CB pays in COVID; premium is whipsaws + worse 2000-start path. Does not dominate; does not reach V19d.

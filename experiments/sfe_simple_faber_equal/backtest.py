@@ -43,13 +43,9 @@ from experiments.v11_beta_scaled.backtest import (
 YF_CACHE = ROOT / "data/raw/yfinance/sfe_universe.parquet"
 FRED_CACHE = ROOT / "data/raw/fred/DTB3.parquet"
 
-SLEEVE_W = 1.0 / 3.0
-# Signal asset → holding asset, expense (for pre-inception lev sim)
-SLEEVES = {
-    "nasdaq": {"signal": "QQQ", "hold": "QLD", "expense": QLD_EXP},
-    "sp500": {"signal": "SPY", "hold": "SSO", "expense": SSO_EXP},
-    "gold": {"signal": "GLD", "hold": "GLD", "expense": 0.0},
-}
+# Default a priori equal sleeves. Variants pass explicit weights into run_sfe.
+W_EQUAL = (1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0)  # nasdaq, sp500, gold
+W_45_45_10 = (0.45, 0.45, 0.10)
 
 
 def load_prices() -> pd.DataFrame:
@@ -94,9 +90,20 @@ def lev_or_actual(
     return 2.0 * underlying_ret - rfr - expense / 252.0
 
 
-def run_sfe(px: pd.DataFrame, rfr_daily: pd.Series, start: str | None = None):
-    """Return daily portfolio returns + monthly allocation log."""
-    # Holding returns
+def run_sfe(
+    px: pd.DataFrame,
+    rfr_daily: pd.Series,
+    start: str | None = None,
+    weights: tuple[float, float, float] = W_EQUAL,
+):
+    """Return daily portfolio returns + monthly allocation log.
+
+    weights = (nasdaq_sleeve, sp500_sleeve, gold_sleeve); must sum to 1.
+    OFF sleeves stay in cash at that sleeve's fixed weight (no pro-rata).
+    """
+    w_n, w_s, w_g = weights
+    assert abs(w_n + w_s + w_g - 1.0) < 1e-12, f"weights must sum to 1, got {weights}"
+
     qqq_r = px["QQQ"].pct_change()
     spy_r = px["SPY"].pct_change()
     gld_r = px["GLD"].pct_change()
@@ -108,7 +115,6 @@ def run_sfe(px: pd.DataFrame, rfr_daily: pd.Series, start: str | None = None):
         px["SSO"].first_valid_index(),
     )
 
-    # Monthly Faber signals on signal series
     me = pd.DatetimeIndex(month_ends(px.index))
     monthly = {
         "QQQ": px["QQQ"].reindex(me),
@@ -117,14 +123,11 @@ def run_sfe(px: pd.DataFrame, rfr_daily: pd.Series, start: str | None = None):
     }
     on_m = {k: faber_on(v) for k, v in monthly.items()}
 
-    # Map each calendar month → signal decided at PRIOR month-end
-    # Allocation for days in month M uses signal from last day of month M-1.
     signal_by_month = {}
     months = sorted(on_m["QQQ"].index)
     for i, m_end in enumerate(months):
         period = m_end.to_period("M")
         if i == 0:
-            # No prior month — stay cash (warmup)
             signal_by_month[period] = {"QQQ": False, "SPY": False, "GLD": False}
         else:
             prev = months[i - 1]
@@ -134,17 +137,14 @@ def run_sfe(px: pd.DataFrame, rfr_daily: pd.Series, start: str | None = None):
                 "GLD": bool(on_m["GLD"].loc[prev]) if pd.notna(monthly["GLD"].loc[prev]) else False,
             }
 
-    # Backtest window: need SPY+QQQ for equity sleeves; gold optional
     bt_start = max(
         px["QQQ"].first_valid_index(),
         px["SPY"].first_valid_index(),
     )
-    # Need 10 months of QQQ history before meaningful signals
     qqq_me = monthly["QQQ"].dropna()
     if len(qqq_me) < 11:
         raise RuntimeError("Insufficient QQQ monthly history for 10-mo SMA")
-    first_live_signal_month = qqq_me.index[10].to_period("M")  # after 10 full months
-    # Apply starting the NEXT month after first valid signal month-end
+    first_live_signal_month = qqq_me.index[10].to_period("M")
     live_start = (first_live_signal_month + 1).to_timestamp()
     bt_start = max(bt_start, live_start)
     if start:
@@ -153,7 +153,7 @@ def run_sfe(px: pd.DataFrame, rfr_daily: pd.Series, start: str | None = None):
     trading_days = px.loc[bt_start:].index
     port = {}
     monthly_log = []
-    nav = {"nasdaq": SLEEVE_W, "sp500": SLEEVE_W, "gold": SLEEVE_W}
+    nav = {"nasdaq": w_n, "sp500": w_s, "gold": w_g}
     current_on = {"QQQ": False, "SPY": False, "GLD": False}
     last_period = None
 
@@ -164,20 +164,21 @@ def run_sfe(px: pd.DataFrame, rfr_daily: pd.Series, start: str | None = None):
             current_on = signal_by_month.get(
                 period, {"QQQ": False, "SPY": False, "GLD": False}
             )
-            # Fixed-sleeve rebalance to targets (cash fills OFF sleeves)
             total = sum(nav.values())
-            nav = {k: total * SLEEVE_W for k in nav}
+            nav = {"nasdaq": total * w_n, "sp500": total * w_s, "gold": total * w_g}
+            w_qld = w_n if current_on["QQQ"] else 0.0
+            w_sso = w_s if current_on["SPY"] else 0.0
+            w_gld = w_g if current_on["GLD"] else 0.0
             monthly_log.append(
                 {
                     "month": period.to_timestamp(),
                     "qqq_on": current_on["QQQ"],
                     "spy_on": current_on["SPY"],
                     "gld_on": current_on["GLD"],
-                    "w_qld": SLEEVE_W if current_on["QQQ"] else 0.0,
-                    "w_sso": SLEEVE_W if current_on["SPY"] else 0.0,
-                    "w_gld": SLEEVE_W if current_on["GLD"] else 0.0,
-                    "w_cash": SLEEVE_W
-                    * (3 - sum([current_on["QQQ"], current_on["SPY"], current_on["GLD"]])),
+                    "w_qld": w_qld,
+                    "w_sso": w_sso,
+                    "w_gld": w_gld,
+                    "w_cash": 1.0 - w_qld - w_sso - w_gld,
                 }
             )
             last_period = period
