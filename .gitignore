@@ -17,7 +17,6 @@ venv/
 .claude/
 .cursor/
 CLAUDE.md
-AGENTS.md
 research/.obsidian/plugins/
 research/.obsidian/community-plugins.json
 research/.smart-env/
