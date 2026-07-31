@@ -17,6 +17,7 @@ This repo is a Python research/backtesting project (`regime-engine`) plus two da
 
 - No linting is configured (no ruff/flake8/pyproject config). "Lint" is not applicable.
 - `python`/`pip` are not on PATH; use `python3` and the venv binaries (`.venv/bin/...`).
+- The Cursor base image does NOT ship `python3.12-venv`, so `python3 -m venv` fails with `ensurepip is not available` on a bare base. It gets baked into the saved snapshot once installed, but if the snapshot ever falls back to the base image the venv step would break. The update script is therefore self-healing: it `apt-get install`s `python3.12-venv` only if `python3 -m venv` fails. This is also the most likely reason an environment snapshot save/boot errors for this repo.
 - `dashboard/node_modules` is committed to git but contains macOS (`darwin-arm64`) native binaries. On Linux this makes `vite` fail with `ERR_MODULE_NOT_FOUND`. The update script fixes this by removing `dashboard/node_modules` and reinstalling for the current platform. Do NOT commit the resulting `node_modules`/`package-lock.json` churn — it is platform-specific noise.
 - Bulk market data (`data/processed/`, `data/raw/...`) is gitignored and regenerated via `data/fetcher.py` (needs API keys). The dashboards do not depend on it — they use the committed `viz/packages/` parquet files and inlined JSX data.
 - Streamlit is configured headless via `.streamlit/config.toml`; run with `--server.port 8501` and open `http://localhost:8501`.
