@@ -1,4 +1,4 @@
-"""Paper twin ledger — intended vs fill, slip in bps."""
+"""Paper twin ledger — activity log. Not a slippage tracker."""
 
 from __future__ import annotations
 
@@ -9,7 +9,6 @@ from pathlib import Path
 RUNTIME = Path(__file__).resolve().parent / "runtime"
 LEDGER = RUNTIME / "ledger.jsonl"
 SIGNALS = RUNTIME / "signals.jsonl"
-PAPER_NAV = RUNTIME / "paper_nav.csv"
 
 
 def _append_jsonl(path: Path, row: dict) -> None:
@@ -37,13 +36,6 @@ def log_fill(
     dry_run: bool,
     note: str = "",
 ) -> dict:
-    slip_bps = None
-    if intended_px and fill_px and intended_px > 0:
-        # sell: positive slip if fill < intended; buy: positive if fill > intended
-        if action in ("CB_SELL", "SELL"):
-            slip_bps = (intended_px - fill_px) / intended_px * 1e4
-        else:
-            slip_bps = (fill_px - intended_px) / intended_px * 1e4
     row = {
         "ts": datetime.now(timezone.utc).isoformat(),
         "sleeve": sleeve,
@@ -52,7 +44,6 @@ def log_fill(
         "qty": qty,
         "intended_px": intended_px,
         "fill_px": fill_px,
-        "slip_bps": slip_bps,
         "dry_run": dry_run,
         "note": note,
     }

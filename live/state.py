@@ -22,14 +22,16 @@ class SleeveRuntime:
     wash_blocked_until: str | None = None  # ISO date
     last_cb: str | None = None
     last_fill_px: float | None = None
+    rejected_mode: str | None = None
 
 
 @dataclass
 class SystemState:
     updated: str = ""
-    stage: int = 0  # 0 paper … 4 scale
+    stage: int = 0  # 0 paper, 1 agentic
     dry_run: bool = True
     tax_mode: str = "TAXABLE_STANDARD"
+    capital: float = 1000.0
     sleeves: dict = field(default_factory=dict)
 
     def ensure_sleeves(self):
@@ -50,7 +52,8 @@ def load_state() -> SystemState:
         save_state(st)
         return st
     raw = json.loads(STATE_PATH.read_text())
-    st = SystemState(**{k: raw[k] for k in ("updated", "stage", "dry_run", "tax_mode", "sleeves") if k in raw})
+    keys = ("updated", "stage", "dry_run", "tax_mode", "capital", "sleeves")
+    st = SystemState(**{k: raw[k] for k in keys if k in raw})
     st.ensure_sleeves()
     return st
 
@@ -59,13 +62,15 @@ def save_state(st: SystemState) -> None:
     RUNTIME.mkdir(parents=True, exist_ok=True)
     st.updated = datetime.now(timezone.utc).isoformat()
     st.ensure_sleeves()
-    STATE_PATH.write_text(json.dumps(asdict(st) if hasattr(st, "__dataclass_fields__") else {
+    payload = {
         "updated": st.updated,
         "stage": st.stage,
         "dry_run": st.dry_run,
         "tax_mode": st.tax_mode,
+        "capital": st.capital,
         "sleeves": st.sleeves,
-    }, indent=2, default=str))
+    }
+    STATE_PATH.write_text(json.dumps(payload, indent=2, default=str))
 
 
 def wash_clear(sleeve: dict, as_of: datetime | None = None) -> bool:
@@ -134,31 +139,8 @@ def transition_on_signal(st: SystemState, eval_result: dict) -> list[dict]:
                     "preauthorized": False,
                 })
             else:
-                if sl.get("status") in ("FLAT", "REENTRY_ELIGIBLE") and (
-                    sl.get("mode") != mode or sl.get("levered") != lev
-                ):
-                    actions.append({
-                        "sleeve": sleeve,
-                        "action": "BUY",
-                        "ticker": ticker,
-                        "mode": mode,
-                        "levered": lev,
-                        "reason": "monthly/signal re-entry",
-                        "preauthorized": False,
-                    })
-                    sl["status"] = "REENTRY_ELIGIBLE"
-                elif sl.get("status") == "HOLD" and sl.get("mode") in (None, "cash") and mode != "cash":
-                    actions.append({
-                        "sleeve": sleeve,
-                        "action": "BUY",
-                        "ticker": ticker,
-                        "mode": mode,
-                        "levered": lev,
-                        "reason": "initial risk-on (approve required)",
-                        "preauthorized": False,
-                    })
-                    sl["status"] = "REENTRY_ELIGIBLE"
-                elif sl.get("status") == "HOLD" and (sl.get("mode") != mode or sl.get("levered") != lev):
+                holding = sl.get("status") == "HOLD" and sl.get("mode") not in (None, "cash")
+                if holding and (sl.get("mode") != mode or sl.get("levered") != lev):
                     actions.append({
                         "sleeve": sleeve,
                         "action": "REBALANCE",
@@ -168,8 +150,21 @@ def transition_on_signal(st: SystemState, eval_result: dict) -> list[dict]:
                         "reason": "mode change",
                         "preauthorized": False,
                     })
+                elif holding:
+                    pass  # already in the target; approval already happened
+                elif sl.get("rejected_mode") == mode:
+                    sl["status"] = "FLAT"
                 else:
-                    sl["status"] = "HOLD"
+                    actions.append({
+                        "sleeve": sleeve,
+                        "action": "BUY",
+                        "ticker": ticker,
+                        "mode": mode,
+                        "levered": lev,
+                        "reason": "risk-on — needs your approval",
+                        "preauthorized": False,
+                    })
+                    sl["status"] = "REENTRY_ELIGIBLE"
                 sl["mode"] = mode
                 sl["levered"] = bool(lev)
                 sl["ticker"] = ticker

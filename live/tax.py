@@ -1,12 +1,23 @@
 """Tax-drag model for taxable-account compounding sensitivity.
 
-Not tax advice / not 1099-accurate. Used to answer: after short-term turnover,
-does V19d still clear a hurdle vs benchmarks?
+Not tax advice / not 1099-accurate. Answers: after realizing gains at some
+turnover, how much of V19d's edge survives in a taxable account?
+
+Single canonical model, shared by both dashboards (viz/app.py DCA paths and
+viz/pages/1_Growth_simulation.py CAGR windows via viz.growth_sim.after_tax_cagr):
+
+    each calendar year, a `realized_fraction` of that year's gain is sold and
+    taxed at the blended rate; the rest defers and compounds untaxed. Losses are
+    not credited, and no tax is modeled at final liquidation.
+
+`realized_fraction` is the main lever. V19d holds sleeves between CB/mode exits,
+so a value well under 1.0 is realistic; 1.0 == realize-everything-annually
+(worst case). The blended rate mixes short- vs long-term treatment via
+`stcg_fraction`.
 """
 
 from __future__ import annotations
 
-import numpy as np
 import pandas as pd
 
 
@@ -14,104 +25,49 @@ def effective_gain_rate(
     ordinary: float = 0.32,
     ltcg: float = 0.15,
     state: float = 0.05,
-    stcg_fraction: float = 0.80,
+    stcg_fraction: float = 0.50,
 ) -> float:
-    """Blended marginal rate on a dollar of realized gain."""
+    """Blended marginal rate on a realized dollar of gain.
+
+    Federal short-/long-term mix plus a state rate that stacks on both. Mirrored
+    by viz.growth_sim.blended_gain_rate so the two dashboards agree.
+    """
     fed = stcg_fraction * ordinary + (1.0 - stcg_fraction) * ltcg
-    # State roughly stacks on ordinary; simplify: full state on all gains
     return fed + state
 
 
-def estimate_annual_turnover(monthly_returns: pd.Series, state: pd.DataFrame | None) -> pd.Series:
-    """Proxy realized-gain fraction of NAV per year from allocation changes.
-
-    If monthly_state exists with mode columns, count sleeve flips as turnover.
-    Else use a conservative default turnover rate series (constant).
-    """
-    years = sorted(set(monthly_returns.dropna().index.year))
-    out = {}
-    if state is not None and {"p1_mode", "p2_mode", "gold_mode"}.issubset(state.columns):
-        s = state.reindex(monthly_returns.index).ffill()
-        for y in years:
-            sy = s[s.index.year == y]
-            if len(sy) < 2:
-                out[y] = 0.5
-                continue
-            flips = 0
-            for col in ("p1_mode", "p2_mode", "gold_mode"):
-                flips += int((sy[col] != sy[col].shift(1)).sum())
-            # Each flip ≈ turning over ~1/3 of portfolio once
-            out[y] = min(2.5, 0.15 + flips * 0.08)
-    else:
-        for y in years:
-            out[y] = 0.6  # default: moderately high turnover strategy
-    return pd.Series(out)
-
-
-def after_tax_monthly_returns(
+def after_tax_monthly_annual(
     monthly_returns: pd.Series,
-    state: pd.DataFrame | None = None,
     ordinary: float = 0.32,
     ltcg: float = 0.15,
-    state_tax: float = 0.05,
-    stcg_fraction: float = 0.80,
-    gain_fraction_of_positive: float = 0.70,
+    state: float = 0.05,
+    stcg_fraction: float = 0.50,
+    realized_fraction: float = 0.65,
 ) -> pd.Series:
-    """Haircut positive months by an estimated tax accrual.
+    """After-tax monthly return series under the annual realized-gain model.
 
-    Model: in each calendar year, estimate turnover τ. On positive months,
-    accrue tax ≈ rate * gain_fraction * r * (τ / n_pos_months_scale).
-    Negative months unchanged (losses accrue; simplified — no carry detail).
+    For each calendar year with gross return g, tax = rate * realized_fraction *
+    max(g, 0); the year then compounds to (1 + g - tax) instead of (1 + g). The
+    within-year month-to-month shape is preserved by scaling every month in the
+    year uniformly, so drawdown timing is unchanged and only the level is taxed.
+
+    This is the monthly-path analogue of viz.growth_sim.after_tax_cagr, so the
+    DCA view and the CAGR-window view rest on the same assumption.
     """
-    r = monthly_returns.dropna().copy()
+    r = monthly_returns.dropna().astype(float)
     if r.empty:
         return r
-    rate = effective_gain_rate(ordinary, ltcg, state_tax, stcg_fraction)
-    turnover = estimate_annual_turnover(r, state)
-    out = []
-    for ts, ret in r.items():
-        y = ts.year
-        tau = float(turnover.get(y, 0.6))
-        if ret > 0:
-            # Tax accrual proportional to gain and turnover intensity
-            tax = rate * gain_fraction_of_positive * min(1.0, tau) * ret
-            out.append(ret - tax)
-        else:
-            out.append(ret)
-    return pd.Series(out, index=r.index, name=r.name)
-
-
-def after_tax_metrics_table(
-    monthly: pd.DataFrame,
-    daily: pd.DataFrame,
-    state: pd.DataFrame | None,
-    ordinary: float,
-    ltcg: float,
-    state_tax: float,
-    stcg_fraction: float,
-) -> pd.DataFrame:
-    """Compare pre-tax terminal from daily vs after-tax DCA-style path from monthly."""
-    from viz.metrics import metrics_from_daily, dca_terminal, cagr, max_drawdown, sharpe
-
-    rows = []
-    for col in monthly.columns:
-        pre = metrics_from_daily(daily[col].dropna())
-        at = after_tax_monthly_returns(
-            monthly[col], state if col == "v19d" else None,
-            ordinary, ltcg, state_tax, stcg_fraction,
-        )
-        # After-tax "daily-equivalent" metrics from monthly haircut series
-        rows.append({
-            "Strategy": col,
-            "CAGR_pre": pre["CAGR"],
-            "CAGR_after_tax_approx": cagr(at, "monthly"),
-            "MaxDD_pre": pre["MaxDD"],
-            "MaxDD_after_tax_approx": max_drawdown(at),
-            "Sharpe_pre": pre["Sharpe"],
-            "Terminal_$1_pre": pre["Terminal_$1"],
-            "Terminal_$1_after_tax_approx": float((1 + at).prod()) if len(at) else np.nan,
-            "DCA_pre_vault": dca_terminal(monthly[col], 21000, 700, "vault"),
-            "DCA_after_tax_vault": dca_terminal(at, 21000, 700, "vault"),
-            "blended_tax_rate": effective_gain_rate(ordinary, ltcg, state_tax, stcg_fraction),
-        })
-    return pd.DataFrame(rows)
+    rate = effective_gain_rate(ordinary, ltcg, state, stcg_fraction)
+    out = r.copy()
+    for _year, idx in r.groupby(r.index.year).groups.items():
+        seg = r.loc[idx]
+        g = float((1.0 + seg).prod() - 1.0)
+        if g <= 0.0:
+            continue  # losses untaxed; leave the year as-is
+        tax = rate * realized_fraction * g
+        g_at = g - tax
+        n = len(seg)
+        # scale each (1+r) by k so the year compounds to (1 + g_at)
+        k = ((1.0 + g_at) / (1.0 + g)) ** (1.0 / n)
+        out.loc[idx] = k * (1.0 + seg) - 1.0
+    return out

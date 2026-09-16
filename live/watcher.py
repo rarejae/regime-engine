@@ -1,8 +1,11 @@
-"""Daily V19d watcher — scores, CB actions, dry-run fills.
+"""Daily V19d agent loop.
 
-Usage:
-  .venv/bin/python -m live.watcher
-  .venv/bin/python -m live.watcher --live-quotes   # yfinance last
+Circuit-breaker sells execute immediately (pre-authorized).
+Buys and rebalances are queued for human approval — nothing else is asked.
+
+  .venv/bin/python -m live.watcher --live-quotes
+  .venv/bin/python -m live.approvals list
+  .venv/bin/python -m live.approvals approve pod1-buy pod2-buy
 """
 
 from __future__ import annotations
@@ -21,42 +24,65 @@ load_dotenv(ROOT / ".env")
 
 import pandas as pd
 
+from live.approvals import AUTO, INFORM, NEEDS_YOU, brief_ticket, drop_stale, upsert_pending
 from live.broker import get_broker
 from live.ledger import log_fill, log_signal
-from live.signals import compute_smas, evaluate_day, ticker_for_mode
+from live.signals import compute_smas, evaluate_day
 from live.state import arm_wash_sale, load_state, save_state, transition_on_signal
 
 
 def load_prices(use_live: bool) -> pd.DataFrame:
-    """Prefer experiment yf cache; optionally refresh last prints via yfinance."""
-    cache = ROOT / "experiments" / "v19d_marketstack_verification" / "yf_cache.parquet"
-    if not cache.exists():
-        raise SystemExit(
-            f"Missing {cache}. Run: .venv/bin/python experiments/v19d_marketstack_verification/backtest.py"
-        )
-    raw = pd.read_parquet(cache)
-    # Map to strategy names
-    colmap = {"QQQ": "QQQ", "SPY": "IVV", "GLD": "IAU", "QLD": "QLD", "SSO": "SSO", "TLT": "VGLT"}
-    prices = pd.DataFrame({dst: raw[src] for src, dst in colmap.items() if src in raw.columns})
-    prices.index = pd.to_datetime(prices.index)
-    if use_live:
-        import yfinance as yf
-
-        for sym, col in [("QQQ", "QQQ"), ("SPY", "IVV"), ("GLD", "IAU"), ("QLD", "QLD"), ("SSO", "SSO")]:
-            d = yf.download(sym, period="5d", progress=False, auto_adjust=True)
-            if d is not None and not d.empty:
-                p = d["Close"]
-                if hasattr(p, "columns"):
-                    p = p.iloc[:, 0]
-                p.index = pd.to_datetime(p.index).tz_localize(None)
-                # update/append last
-                for dt, val in p.items():
-                    prices.loc[dt, col] = float(val)
-        prices = prices.sort_index()
-    return prices
+    """Signal prices (adjusted closes) from the configured source (PRICE_SOURCE, default
+    Tiingo). `use_live=True` forces a fresh EOD pull (bypasses the cache-freshness check)
+    rather than overlaying an intraday print — the signal stays purely close-based; the
+    intraday 3:45 cutoff quote is Alpaca's job in live/execute.py."""
+    from live.prices import load_signal_prices
+    return load_signal_prices(refresh=use_live)
 
 
-def run(use_live_quotes: bool = False, execute_cb: bool = True) -> dict:
+def _px(prices: pd.DataFrame, ticker: str | None) -> float | None:
+    if not ticker or ticker not in prices.columns:
+        return None
+    s = prices[ticker].dropna()
+    return float(s.iloc[-1]) if len(s) else None
+
+
+def format_brief(report: dict) -> str:
+    sc = report["scores"]
+    md = report["modes"]
+    lines = [
+        f"V19d {report['day']}  capital ${report['capital']:,.0f}  "
+        f"{'DRY-RUN' if report['dry_run'] else 'LIVE'}",
+        f"Scores  QQQ {sc['QQQ']}/3  IVV {sc['IVV']}/3  IAU {sc['IAU']}/3",
+        f"Target  pod1 {md['pod1']}  pod2 {md['pod2']}  gold {md['gold']}",
+    ]
+    auto = report["auto"]
+    if auto:
+        lines.append("AUTO (executed, no ask):")
+        for row in auto:
+            o = row.get("order") or {}
+            act = row["action"]
+            lines.append(
+                f"  {act['action']} {act.get('ticker') or '—'}  "
+                f"{o.get('message', '')}"
+            )
+    else:
+        lines.append("AUTO: none")
+    pending = report["needs_approval"]
+    if pending:
+        lines.append("NEEDS YOUR APPROVAL:")
+        for t in pending:
+            lines.append("  " + brief_ticket(t))
+        ids = " ".join(t["id"] for t in pending)
+        lines.append(f"Reply: approve {ids}   |   reject <id>")
+    else:
+        lines.append("NEEDS YOUR APPROVAL: none")
+    for b in report.get("blocked") or []:
+        lines.append(f"BLOCKED  {b['sleeve']}  {b.get('reason', '')}")
+    return "\n".join(lines)
+
+
+def run(use_live_quotes: bool = False, execute_auto: bool = True) -> dict:
     prices = load_prices(use_live_quotes)
     day = prices.dropna(how="all").index.max()
     smas = compute_smas(prices[["QQQ", "IVV", "IAU"]].dropna(how="all"))
@@ -73,15 +99,18 @@ def run(use_live_quotes: bool = False, execute_cb: bool = True) -> dict:
     }
     broker = get_broker(quotes)
 
-    results = []
+    auto_out = []
+    pending = []
+    blocked = []
+    pending_ids: set[str] = set()
+
     for act in actions:
-        if act["action"] == "CB_SELL" and execute_cb and act.get("ticker"):
+        kind = act["action"]
+        if kind in AUTO and execute_auto and act.get("ticker"):
             tkr = act["ticker"]
             q = broker.get_quote(tkr)
-            # Stage policy: CB pre-authorized; qty placeholder 1 share in dry-run
-            qty = 1.0
-            limit = q.last * 0.9985 if q.last else None  # -15 bps
-            order = broker.place_equity_order(tkr, "sell", qty, "limit", limit)
+            qty = 1.0  # flatten whatever we hold; MCP will size from position later
+            order = broker.place_equity_order(tkr, "sell", qty, "market", None)
             fill = log_fill(
                 sleeve=act["sleeve"],
                 action="CB_SELL",
@@ -92,24 +121,26 @@ def run(use_live_quotes: bool = False, execute_cb: bool = True) -> dict:
                 dry_run=order.dry_run,
                 note=order.message,
             )
-            # Mark flat + wash if loss vs last_fill
             sl = st.sleeves[act["sleeve"]]
             last = sl.get("last_fill_px")
             loss = bool(last is not None and order.fill_px is not None and order.fill_px < float(last))
-            if st.tax_mode.startswith("TAXABLE") and loss:
-                arm_wash_sale(sl, loss=True)
-            elif st.tax_mode.startswith("TAXABLE") and last is None:
-                # No cost basis yet — arm conservatively on first CB exit
+            if st.tax_mode.startswith("TAXABLE") and (loss or last is None):
                 arm_wash_sale(sl, loss=True)
             sl["status"] = "FLAT"
             sl["mode"] = "cash"
             sl["levered"] = False
             sl["ticker"] = None
             sl["last_fill_px"] = order.fill_px
-            results.append({"action": act, "order": order.__dict__, "fill": fill})
-        else:
-            results.append({"action": act, "order": None})
+            auto_out.append({"action": act, "order": order.__dict__, "fill": fill})
+        elif kind in NEEDS_YOU:
+            px = _px(prices, act.get("ticker"))
+            ticket = upsert_pending(act, st.capital, px)
+            pending_ids.add(ticket["id"])
+            pending.append(ticket)
+        elif kind in INFORM:
+            blocked.append(act)
 
+    drop_stale(pending_ids)
     save_state(st)
 
     report = {
@@ -121,21 +152,29 @@ def run(use_live_quotes: bool = False, execute_cb: bool = True) -> dict:
             "gold": ev["gold_mode"],
         },
         "breaches": ev["breaches"],
-        "actions": actions,
-        "executions": results,
+        "capital": st.capital,
+        "auto": auto_out,
+        "needs_approval": pending,
+        "blocked": blocked,
         "dry_run": st.dry_run,
         "stage": st.stage,
     }
+    report["brief"] = format_brief(report)
     return report
 
 
 def main():
-    ap = argparse.ArgumentParser(description="V19d live watcher")
+    ap = argparse.ArgumentParser(description="V19d agentic watcher — auto CB, approve buys")
     ap.add_argument("--live-quotes", action="store_true")
-    ap.add_argument("--no-exec", action="store_true", help="detect only, no dry-run CB fills")
+    ap.add_argument("--no-exec", action="store_true", help="detect only; skip auto CB fills")
+    ap.add_argument("--json", action="store_true", help="print full JSON instead of the brief")
     args = ap.parse_args()
-    report = run(use_live_quotes=args.live_quotes, execute_cb=not args.no_exec)
-    print(json.dumps(report, indent=2, default=str))
+    report = run(use_live_quotes=args.live_quotes, execute_auto=not args.no_exec)
+    if args.json:
+        print(json.dumps({k: v for k, v in report.items() if k != "brief"}, indent=2, default=str))
+        print(report["brief"], file=sys.stderr)
+    else:
+        print(report["brief"])
 
 
 if __name__ == "__main__":
