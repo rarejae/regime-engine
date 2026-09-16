@@ -5,6 +5,8 @@ plug-and-play: export a package, drop it in `packages/`, reopen.
 
 **Live:** [rarejae-regime-engine.streamlit.app](https://rarejae-regime-engine.streamlit.app)
 
+Pages: **TAA Experiment Visualizer** (home) and **Growth simulation** (sidebar).
+
 ## Quick start
 
 ```bash
@@ -32,6 +34,18 @@ plug-and-play: export a package, drop it in `packages/`, reopen.
 - Allocation state and circuit-breaker event log (when the package provides them)
 - Optional after-tax sensitivity toggle
 - Date-range filter (default: full package window)
+- **Growth simulation** page: sliders for starting capital, monthly contribution, and horizon; median / P10 / worst outcomes from every monthly start in the selected package
+
+### Growth simulation
+
+Historical start-date map (not Monte Carlo). Engine: [`growth_sim.py`](growth_sim.py). UI: [`pages/1_Growth_simulation.py`](pages/1_Growth_simulation.py).
+
+```bash
+.venv/bin/python -m viz.growth_sim --start 5000 --monthly 300 --years 10
+.venv/bin/streamlit run viz/app.py   # then open "Growth simulation" in the sidebar
+```
+
+Re-export the package (`export_v19d_marketstack.py`) to refresh the underlying return tape.
 
 ## Adding a future experiment
 

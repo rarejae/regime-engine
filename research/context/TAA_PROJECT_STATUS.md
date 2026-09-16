@@ -851,6 +851,8 @@ A priori system (no V19d knobs): 1/3 QLD + 1/3 SSO + 1/3 GLD, classic 10-month F
 
 Beats QQQ/SPY on Sharpe and MaxDD without triple-SMA, guards, or CB. COVID DD −28.7% ≈ QQQ (no intra-month exit). **Principle validated.** SFE is now the simplicity floor any tuned system must beat.
 
+Alpha sources (shared principle vs V19d knobs): [[2026-07-31_v19d_vs_sfe_alpha]].
+
 ### Follow-up: gold at 10% (45/45/10)
 
 See [[2026-07-22_sfe_45_45_10_gold_cap]]. Same signals; sleeves 45/45/10.

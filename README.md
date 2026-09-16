@@ -16,7 +16,7 @@ After ~50 logged experiments, the locked candidate strategy is **V19d**: two ind
 
 **[Open the Streamlit visualizer →](https://rarejae-regime-engine.streamlit.app)**
 
-Compare V19d against buy-and-hold benchmarks, inspect drawdowns, crisis windows, and allocation state.
+Compare V19d against buy-and-hold benchmarks, inspect drawdowns, crisis windows, and allocation state. Sidebar page **Growth simulation** maps a lump + monthly contribution plan across every historical month-start.
 
 Run locally:
 

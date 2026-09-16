@@ -25,6 +25,7 @@ _ROOT = Path(__file__).resolve().parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
+from viz.data import list_packages, load_package as _load_package, strategy_map
 from viz.metrics import (
     CRISIS_WINDOWS,
     cagr,
@@ -35,45 +36,12 @@ from viz.metrics import (
     equity_curve,
     metrics_from_daily,
 )
-from viz.schema import REQUIRED_FILES
-from live.tax import after_tax_monthly_returns, effective_gain_rate
-
-ROOT = Path(__file__).resolve().parent
-PACKAGES = ROOT / "packages"
-
-
-# ── Package I/O ──────────────────────────────────────────────────────────────
-
-def list_packages() -> list[Path]:
-    if not PACKAGES.exists():
-        return []
-    out = []
-    for p in sorted(PACKAGES.iterdir()):
-        if p.is_dir() and all((p / f).exists() for f in REQUIRED_FILES):
-            out.append(p)
-    return out
+from live.tax import after_tax_monthly_annual, effective_gain_rate
 
 
 @st.cache_data(show_spinner=False)
 def load_package(path_str: str) -> dict:
-    path = Path(path_str)
-    meta = json.loads((path / "meta.json").read_text())
-    daily = pd.read_parquet(path / "daily_returns.parquet")
-    daily.index = pd.to_datetime(daily.index)
-    monthly = pd.read_parquet(path / "monthly_returns.parquet")
-    monthly.index = pd.to_datetime(monthly.index)
-    state = None
-    if (path / "monthly_state.parquet").exists():
-        state = pd.read_parquet(path / "monthly_state.parquet")
-        state.index = pd.to_datetime(state.index)
-    cb = None
-    if (path / "cb_events.csv").exists():
-        cb = pd.read_csv(path / "cb_events.csv", parse_dates=["date"])
-    return {"meta": meta, "daily": daily, "monthly": monthly, "state": state, "cb": cb}
-
-
-def strategy_map(meta: dict) -> dict[str, dict]:
-    return {s["id"]: s for s in meta["strategies"]}
+    return _load_package(path_str)
 
 
 def fmt_pct(x, digits=2):
@@ -312,11 +280,18 @@ with st.sidebar:
     st.divider()
     st.header("Tax drag (taxable)")
     apply_tax = st.toggle("Show after-tax estimate", value=False)
-    ordinary = st.slider("Federal ordinary rate", 0.0, 0.45, 0.32, 0.01)
-    ltcg_rate = st.slider("Federal LTCG rate", 0.0, 0.25, 0.15, 0.01)
-    state_tax = st.slider("State tax rate", 0.0, 0.15, 0.05, 0.005)
-    stcg_frac = st.slider("Share of gains taxed as short-term", 0.0, 1.0, 0.80, 0.05)
-    st.caption("Sensitivity model — not tax advice. See live/tax.py.")
+    realized = st.slider(
+        "Gains realized per year", 0.0, 1.0, 0.65, 0.05,
+        help="Share of each year's gain actually sold and taxed. A defer-heavy "
+             "strategy that holds sleeves between CB/mode exits sits well below "
+             "100%; 100% ≈ realizing everything annually (worst case).",
+    )
+    ordinary = st.slider("Federal short-term / ordinary rate", 0.0, 0.45, 0.32, 0.01)
+    ltcg_rate = st.slider("Federal long-term cap-gains rate", 0.0, 0.25, 0.15, 0.01)
+    state_tax = st.slider("State rate", 0.0, 0.15, 0.05, 0.005)
+    stcg_frac = st.slider("Realized gains taxed as short-term", 0.0, 1.0, 0.50, 0.05)
+    st.caption("Sensitivity model — not tax advice. Same annual realized-gain "
+               "model as the Growth simulation page. See `live/tax.py`.")
 
 # Slice data
 daily = daily_full.loc[str(start_d):str(end_d), selected].dropna(how="all")
@@ -370,14 +345,16 @@ if apply_tax:
     st.subheader("After-tax sensitivity (taxable account)")
     blend = effective_gain_rate(ordinary, ltcg_rate, state_tax, stcg_frac)
     st.caption(f"Blended marginal rate on realized gains ≈ **{blend:.1%}** "
-               f"(STCG frac {stcg_frac:.0%}). Haircuts positive months only.")
+               f"(STCG frac {stcg_frac:.0%}). Taxes {realized:.0%} of each year's "
+               f"gain; the rest defers untaxed. Applied **identically to every series** — "
+               f"a true buy-and-hold index defers gains and is more tax-efficient, so its "
+               f"drag here is a worst case.")
     tax_rows = []
     at_monthly = {}
     for sid in selected:
-        at = after_tax_monthly_returns(
+        at = after_tax_monthly_annual(
             monthly[sid],
-            state if sid in ("v19d", "sfev3") else None,
-            ordinary, ltcg_rate, state_tax, stcg_frac,
+            ordinary, ltcg_rate, state_tax, stcg_frac, realized,
         )
         at_monthly[sid] = at
         pre_wealth = dca_terminal(monthly[sid].dropna(), start_cap, monthly_contrib)

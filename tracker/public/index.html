@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>V19d HSA Tracker</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+    --blue:#2563eb; --green:#059669; --red:#dc2626; --amber:#d97706;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0b1120; --card:#111827; --ink:#e5e7eb; --muted:#94a3b8; --line:#1f2937; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+  .wrap{max-width:980px;margin:0 auto;padding:24px 18px 60px}
+  h1{font-size:20px;margin:0 0 2px} .sub{color:var(--muted);font-size:12px;margin-bottom:20px}
+  .grid{display:grid;gap:14px}
+  .cards{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .k{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  .v{font-size:26px;font-weight:650;margin-top:4px}
+  .v.sm{font-size:20px}
+  .pos{color:var(--green)} .neg{color:var(--red)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:right;padding:8px 6px;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+  .sec{margin-top:22px}.sec h2{font-size:14px;margin:0 0 10px}
+  .bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+  .bar>i{display:block;height:100%;background:var(--blue)}
+  .tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+  .tab{padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--muted);cursor:pointer;font-weight:600;font-size:13px}
+  .tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600}
+  .on{background:rgba(5,150,105,.15);color:var(--green)} .off{background:rgba(100,116,139,.15);color:var(--muted)}
+  input{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;width:130px}
+  button{background:var(--blue);color:#fff;border:0;border-radius:8px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer}
+  .muted{color:var(--muted)} .mono{font-variant-numeric:tabular-nums}
+  .note{font-size:12px;color:var(--muted);margin-top:8px}
+  svg{width:100%;height:220px;display:block}
+  .legend span{font-size:12px;margin-right:14px} .dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:middle}
+  .err{color:var(--red)}
+  .banner{border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;border:1px solid}
+  .banner.warn{background:rgba(220,38,38,.08);border-color:rgba(220,38,38,.35);color:var(--ink)}
+  .banner.block{background:rgba(217,119,6,.08);border-color:rgba(217,119,6,.35);color:var(--ink)}
+  .banner b{color:var(--red)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="title">V19d</h1>
+  <div class="sub" id="sub">loading…</div>
+  <div class="tabs" id="tabs"></div>
+  <div id="warn"></div>
+
+  <div class="grid cards" id="tiles"></div>
+
+  <div class="sec" id="taxsec" hidden>
+    <h2>Tax estimator <span class="muted" style="font-weight:400">— realized gains this year; wash-sale losses not credited. Estimate, not a 1099.</span></h2>
+    <div class="card">
+      <table id="tax"><tbody></tbody></table>
+      <div class="note" id="taxnote"></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2>You vs. buy-and-hold <span class="muted" style="font-weight:400">— same contributions, invested differently</span></h2>
+    <div class="card"><table id="vs"><thead><tr>
+      <th>Strategy</th><th>Value now</th><th>vs contributed</th><th>vs V19d</th><th></th>
+    </tr></thead><tbody></tbody></table></div>
+  </div>
+
+  <div class="sec">
+    <h2>Growth over time</h2>
+    <div class="card">
+      <div class="legend" id="legend"></div>
+      <svg id="chart" viewBox="0 0 900 220" preserveAspectRatio="none"></svg>
+      <div class="note" id="chartnote"></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2>Reconcile from broker CSV <span class="muted" style="font-weight:400">— upload a positions export; the broker is treated as truth, saved as a dated checkpoint</span></h2>
+    <div class="card">
+      <input type="file" id="csvfile" accept=".csv,text/csv" />
+      <button onclick="uploadCsv()">Upload &amp; reconcile</button>
+      <div class="note" id="csvout"></div>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:22px" id="lowgrid">
+    <div class="card">
+      <h2 style="font-size:14px;margin:0 0 10px">Allocation & signal</h2>
+      <div id="signal" class="note" style="margin:0 0 10px"></div>
+      <table id="alloc"><tbody></tbody></table>
+    </div>
+    <div class="card">
+      <h2 style="font-size:14px;margin:0 0 10px">Emergency withdrawal</h2>
+      <div><input id="wamt" type="number" placeholder="$ amount" /> <button onclick="preview()">Preview</button></div>
+      <div id="wout" class="note"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (s)=>document.querySelector(s);
+const usd = (n)=> n==null?"—":(n<0?"-$":"$")+Math.abs(n).toLocaleString(undefined,{maximumFractionDigits:0});
+const pct = (n)=> n==null?"—":(n*100).toFixed(1)+"%";
+const cls = (n)=> n==null?"":(n>=0?"pos":"neg");
+let ACCOUNT = null;
+
+async function initAccounts(){
+  let accts=[];
+  try { const r=await fetch("/api/accounts"); accts=(await r.json()).accounts||[]; } catch(e){}
+  if(!accts.length){ $("#sub").innerHTML='No accounts yet. Seed one: <span class="mono">python -m live.fidelity add-cash 8000 --account hsa</span> then <span class="mono">refresh</span>'; return; }
+  ACCOUNT = accts[0].account;
+  $("#tabs").innerHTML = accts.map(a=>`<div class="tab" data-a="${a.account}">${a.label}</div>`).join("");
+  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{ ACCOUNT=t.dataset.a; markTab(); load(); });
+  markTab(); load();
+}
+function markTab(){ document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active", t.dataset.a===ACCOUNT)); }
+
+async function load(){
+  $("#wout").innerHTML=""; $("#wamt").value="";
+  let d;
+  try { const r = await fetch("/api/status?account="+encodeURIComponent(ACCOUNT)); d = await r.json(); }
+  catch(e){ $("#sub").innerHTML='<span class="err">could not load status</span>'; return; }
+  $("#title").textContent = d.label ? "V19d · "+d.label : "V19d";
+  if(d.needsRefresh){
+    $("#sub").innerHTML='No tracker data yet. Import your CSV then refresh: <span class="mono">python -m live.fidelity positions &lt;file.csv&gt;</span> · <span class="mono">python -m live.fidelity refresh</span>';
+    return;
+  }
+  if(!d.seeded){
+    $("#sub").innerHTML='No account yet. Seed it: <span class="mono">python -m live.fidelity add-cash 8000</span> then <span class="mono">refresh</span>';
+  } else {
+    $("#sub").textContent = `as of ${new Date(d.updated).toLocaleString()} · ${d.tax_mode}${d.wash_sale?" · wash-sale applies":""} · account from ${d.broker||"broker"} CSV, benchmarks from yfinance · since ${d.firstDate}`;
+  }
+  const gpct = d.contributed>0 ? d.net_gain/d.contributed : null;
+  $("#tiles").innerHTML = tile("Account value", usd(d.v19d)) +
+    tile("Net contributed", usd(d.contributed)) +
+    tile("Total gain", usd(d.net_gain), cls(d.net_gain), gpct==null?"":`${d.net_gain>=0?"+":""}${pct(gpct)}`) +
+    tile("Cash", usd(d.cash));
+
+  // vs table
+  const rows = [
+    ["V19d (you)", d.v19d, 0, "blue"],
+    ["SPY buy & hold", d.benches.spy, d.vs.spy, "muted"],
+    ["QQQ buy & hold", d.benches.qqq, d.vs.qqq, "muted"],
+    ["60/40 (SPY/TLT)", d.benches.blend, d.vs.blend, "muted"],
+  ];
+  const maxv = Math.max(...rows.map(r=>r[1]||0),1);
+  $("#vs tbody").innerHTML = rows.map(([name,val,gap,c])=>`<tr>
+    <td>${name}</td><td class="mono">${usd(val)}</td>
+    <td class="mono ${cls(val==null?null:val-d.contributed)}">${val==null?"—":(val-d.contributed>=0?"+":"")+usd(val-d.contributed)}</td>
+    <td class="mono ${name.startsWith("V19d")?"":cls(gap)}">${name.startsWith("V19d")?"—":(gap==null?"—":(gap>=0?"+":"")+usd(gap))}</td>
+    <td style="width:120px"><div class="bar"><i style="width:${Math.max(2,(val||0)/maxv*100)}%;background:${c==="blue"?"var(--blue)":"var(--muted)"}"></i></div></td>
+  </tr>`).join("");
+
+  // signal + allocation
+  const sc = d.signal.scores;
+  $("#signal").innerHTML = sc ? `Signal (${d.signal.day}): ` +
+    ["QQQ","IVV","IAU"].map(a=>`${a} <b>${sc[a]}/3</b> ${sc[a]>=3?'<span class="pill on">on</span>':'<span class="pill off">off</span>'}`).join(" &nbsp; ")
+    : '<span class="muted">run <span class="mono">python -m live.fidelity plan --live-quotes</span> for the current signal</span>';
+  $("#alloc tbody").innerHTML = Object.entries(d.sleeves).map(([s,x])=>`<tr>
+    <td>${s} <span class="muted">${x.ticker||"cash"}</span></td>
+    <td class="mono">${x.shares?x.shares.toFixed(3)+" sh":"—"}</td>
+    <td class="mono">${usd(x.value)}</td>
+    <td class="mono">${d.v19d?pct(x.value/d.v19d):"—"} <span class="muted">/ ${pct(x.target)}</span></td>
+  </tr>`).join("");
+
+  renderWarnings(d);
+  renderTax(d);
+  drawChart(d.history);
+}
+
+function renderWarnings(d){
+  let h="";
+  (d.warnings||[]).forEach(w=> h+=`<div class="banner warn"><b>⚠ Wash sale:</b> ${w}</div>`);
+  (d.blocked||[]).forEach(b=> h+=`<div class="banner block"><b>Blocked:</b> ${b}</div>`);
+  $("#warn").innerHTML=h;
+}
+
+function renderTax(d){
+  const t=d.tax_estimate;
+  if(!t){ $("#taxsec").hidden=true; return; }
+  $("#taxsec").hidden=false;
+  const rows=[
+    ["Short-term gains", usd(t.st_gain)],
+    ["Long-term gains", usd(t.lt_gain)],
+    ["Losses credited (ST + LT)", "−"+usd(t.st_loss_allowed+t.lt_loss_allowed)],
+    ["Wash-sale losses <span class='muted'>(not credited)</span>", usd(t.wash_disallowed_loss)],
+  ];
+  $("#tax tbody").innerHTML = rows.map(r=>`<tr><td>${r[0]}</td><td class="mono">${r[1]}</td></tr>`).join("")
+    + `<tr><td><b>Estimated tax owed (${t.year})</b></td><td class="mono"><b>${usd(t.est_tax)}</b></td></tr>`;
+  $("#taxnote").innerHTML = `Rates ${t.rates}. Losses offset gains; wash-sale-disallowed losses do not. `
+    + `Ignores the $3k ordinary-income allowance and carryforwards. Set your bracket in <span class="mono">live/fidelity.py</span> (TAX_ORDINARY/LTCG/STATE).`;
+}
+
+function tile(k,v,c="",extra=""){
+  return `<div class="card"><div class="k">${k}</div><div class="v ${c}">${v}</div>${extra?`<div class="note ${c}">${extra}</div>`:""}</div>`;
+}
+
+function drawChart(hist){
+  const svg = $("#chart"); const W=900,H=220,pad=8;
+  if(!hist || hist.length<1){ svg.innerHTML=""; $("#chartnote").textContent="History builds as you check in each day."; return; }
+  const series = {v19d:"var(--blue)", spy:"var(--muted)", qqq:"#8b5cf6", blend:"var(--amber)"};
+  const names = {v19d:"V19d", spy:"SPY", qqq:"QQQ", blend:"60/40"};
+  const vals = hist.flatMap(r=>Object.keys(series).map(k=>r[k]).filter(v=>v!=null));
+  const min=Math.min(...vals,0), max=Math.max(...vals,1);
+  const x=(i)=> hist.length===1?W/2:pad+i/(hist.length-1)*(W-2*pad);
+  const y=(v)=> H-pad-(v-min)/(max-min||1)*(H-2*pad);
+  let out="";
+  for(const k of Object.keys(series)){
+    const pts=hist.map((r,i)=> r[k]==null?null:`${x(i).toFixed(1)},${y(r[k]).toFixed(1)}`).filter(Boolean);
+    if(pts.length>1) out+=`<polyline fill="none" stroke="${series[k]}" stroke-width="${k==='v19d'?2.5:1.5}" points="${pts.join(" ")}"/>`;
+    else if(pts.length===1) out+=`<circle cx="${pts[0].split(",")[0]}" cy="${pts[0].split(",")[1]}" r="3" fill="${series[k]}"/>`;
+  }
+  svg.innerHTML=out;
+  $("#legend").innerHTML=Object.keys(series).map(k=>`<span><i class="dot" style="background:${series[k]}"></i>${names[k]}</span>`).join("");
+  $("#chartnote").textContent = `${hist.length} day${hist.length>1?"s":""} tracked. Same cash flows across all four lines.`;
+}
+
+async function uploadCsv(){
+  const f=$("#csvfile").files[0];
+  if(!f){ $("#csvout").textContent="Choose a CSV first."; return; }
+  $("#csvout").textContent="Reconciling…";
+  let content; try{ content=await f.text(); }catch(e){ $("#csvout").innerHTML='<span class="err">could not read file</span>'; return; }
+  let d;
+  try{
+    const r=await fetch("/api/upload-csv",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({account:ACCOUNT, filename:f.name, content})});
+    d=await r.json();
+  }catch(e){ $("#csvout").innerHTML='<span class="err">upload failed</span>'; return; }
+  if(d.error){ $("#csvout").innerHTML=`<span class="err">${d.error}</span>`; return; }
+  let h=`<b>${d.source}</b>: ${d.n_match} match, ${d.n_drift} drift · cash ${usd(d.cash_before)} → ${usd(d.cash_after)}`;
+  h+="<br>"+(d.diffs||[]).map(x=> x.status==="match"
+      ? `&nbsp;✓ ${x.sleeve} ${x.broker_ticker||'cash'} ${x.broker_shares}`
+      : `&nbsp;⟳ ${x.sleeve}: ${x.system_ticker||'cash'} ${x.system_shares} → <b>${x.broker_ticker||'cash'} ${x.broker_shares}</b> (Δ${x.delta>=0?'+':''}${x.delta})`
+    ).join("<br>");
+  $("#csvout").innerHTML=h;
+  load();
+}
+
+async function preview(){
+  const amt=Number($("#wamt").value);
+  if(!amt||amt<=0){ $("#wout").textContent="Enter an amount."; return; }
+  const r=await fetch("/api/withdraw?account="+encodeURIComponent(ACCOUNT)+"&amount="+amt); const d=await r.json();
+  if(d.error){ $("#wout").innerHTML=`<span class="err">${d.error}</span>`; return; }
+  let h=`Raise ${usd(d.amount)}: ${usd(d.fromCash)} from cash`;
+  if(d.sells.length) h+=`, then sell —<br>`+d.sells.map(s=>`&nbsp;&nbsp;SELL <b>${s.shares}</b> ${s.ticker} (~${usd(s.dollars)})`).join("<br>");
+  else h+=` (no sells needed).`;
+  h+=`<br>Account ${usd(d.before)} → <b>${usd(d.after)}</b>.<br><span class="muted">Then execute for real: <span class="mono">python -m live.fidelity withdraw ${d.amount}</span> → place trades → <span class="mono">confirm</span>. Non-medical withdrawals before 65 owe tax + 20% penalty.</span>`;
+  $("#wout").innerHTML=h;
+}
+
+initAccounts();
+setInterval(()=>{ if(ACCOUNT) load(); }, 120000);
+</script>
+</body>
+</html>
