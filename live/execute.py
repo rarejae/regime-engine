@@ -23,6 +23,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import time
 from datetime import datetime, timedelta, timezone
 
 import pandas as pd
@@ -168,39 +170,80 @@ def cmd_stage(args) -> None:
         lines.append(f"⚠️  WASH SALE  {w}")
     deliver("\n".join(lines))
 
+    # Post to Slack for phone approval (if configured) and remember the message id —
+    # `await` only honors a reaction on THIS message, never an older plan.
+    from live import notify
+    if orders and notify.configured():
+        try:
+            payload["slack_ts"] = notify.post_plan(payload, _mode())
+            _pending_path().write_text(json.dumps(payload, indent=2, default=str))
+            print(f"Posted to Slack (ts {payload['slack_ts']}). React ✅ there, then: "
+                  f".venv/bin/python -m live.execute await")
+        except notify.SlackError as e:
+            print(f"  Slack post failed: {e}  (approve via `submit --yes` instead)")
+
+
+def _mode() -> str:
+    return "paper" if os.environ.get("ALPACA_PAPER", "1").strip().lower() not in ("0", "false", "no") else "live"
+
+
+def _slack_note(payload: dict, text: str) -> None:
+    """Best-effort thread reply on the plan's Slack message (audit trail)."""
+    ts = payload.get("slack_ts")
+    if not ts:
+        return
+    try:
+        from live.notify import Slack, configured
+        if configured():
+            Slack().post(text, thread_ts=ts)
+    except Exception as e:  # never let a Slack hiccup break an execution path
+        print(f"  (slack note failed: {e})")
+
 
 # ── submit ───────────────────────────────────────────────────────────────────
 
-def cmd_submit(args) -> None:
-    F.set_account(ACCOUNT)
+def _load_pending() -> dict:
+    """The staged plan, only if it still needs submitting."""
     pend = _pending_path()
     if not pend.exists():
         raise SystemExit("Nothing staged. Run: python -m live.execute stage")
     payload = json.loads(pend.read_text())
-    orders = payload.get("orders", [])
-    if not orders:
+    if not payload.get("orders"):
         print("Staged plan has no orders — nothing to submit.")
-        return
+        raise SystemExit(0)
     if payload.get("submitted"):
         print("This staged plan was already submitted. Run `settle` after the close.")
-        return
-    if not args.yes:
-        raise SystemExit("Refusing to submit without approval. Re-run with --yes to place these MOC orders.")
+        raise SystemExit(0)
+    if payload.get("rejected"):
+        print("This staged plan was rejected — nothing to submit.")
+        raise SystemExit(0)
+    return payload
 
-    broker = _broker(allow_live=args.live)
-    # guards
+
+def submit_pending(payload: dict, broker: AlpacaBroker, *, override_guard: bool = False,
+                   force_window: bool = False, approved_by: str = "cli") -> dict:
+    """Guard + MOC-window checks, then place every staged order as MOC.
+
+    The caller has already obtained approval (CLI --yes or a Slack ✅); this is the
+    single guarded execution path both share.
+    """
+    pend = _pending_path()
     guard = plausibility_guard(broker, payload.get("prices", {}),
                                pd.Timestamp(payload["signal_day"]))
-    if guard and not args.override_guard:
-        deliver("V19d · Alpaca taxable · SUBMIT BLOCKED by guard:\n  - " + "\n  - ".join(guard)
-                + "\n(no orders sent). Re-run with --override-guard only if you've verified the data.")
+    if guard and not override_guard:
+        msg = ("V19d · Alpaca taxable · SUBMIT BLOCKED by guard:\n  - " + "\n  - ".join(guard)
+               + "\n(no orders sent). Re-run with --override-guard only if you've verified the data.")
+        deliver(msg)
+        _slack_note(payload, "🛑 " + msg)
         raise SystemExit(1)
     ok, why = moc_window(broker)
-    if not ok and not broker.paper and not args.force_window:
-        raise SystemExit(f"Outside MOC window ({why}); not submitting live. Use --force-window to override.")
+    if not ok and not broker.paper and not force_window:
+        msg = f"Outside MOC window ({why}); not submitting live. Use --force-window to override."
+        _slack_note(payload, "⏰ " + msg)
+        raise SystemExit(msg)
 
     results = []
-    for o in orders:
+    for o in payload["orders"]:
         try:
             r = broker.place_moc(o["symbol"], o["side"], o["qty"],
                                  client_order_id=f"v19d-{payload['signal_day']}-{o['sleeve']}-{o['side']}")
@@ -209,19 +252,85 @@ def cmd_submit(args) -> None:
             results.append({**o, "order_id": None, "status": str(e), "ok": False})
 
     payload["submitted"] = datetime.now(timezone.utc).isoformat()
+    payload["approved_by"] = approved_by
     payload["mode"] = "paper" if broker.paper else "live"
     payload["results"] = results
     pend.write_text(json.dumps(payload, indent=2, default=str))
 
     good = [r for r in results if r["ok"]]
     bad = [r for r in results if not r["ok"]]
-    lines = [f"V19d · Alpaca taxable · SUBMITTED ({payload['mode']})  {why}"]
+    lines = [f"V19d · Alpaca taxable · SUBMITTED ({payload['mode']}, approved by {approved_by})  {why}"]
     for r in good:
         lines.append(f"  ✓ {r['side'].upper()} {r['qty']} {r['symbol']} MOC → {r['status']} ({r['order_id']})")
     for r in bad:
         lines.append(f"  ✗ {r['side'].upper()} {r['qty']} {r['symbol']} FAILED → {r['status']}  (T+1 fallback)")
     lines.append("After 4:00 ET run:  .venv/bin/python -m live.execute settle")
     deliver("\n".join(lines))
+    _slack_note(payload, "\n".join(lines))
+    return payload
+
+
+def cmd_submit(args) -> None:
+    F.set_account(ACCOUNT)
+    payload = _load_pending()
+    if not args.yes:
+        raise SystemExit("Refusing to submit without approval. Re-run with --yes to place these MOC orders.")
+    submit_pending(payload, _broker(allow_live=args.live), override_guard=args.override_guard,
+                   force_window=args.force_window, approved_by="cli --yes")
+
+
+# ── await (Slack approval) ───────────────────────────────────────────────────
+
+def cmd_await(args) -> None:
+    """Poll Slack for your ✅/❌ on today's staged plan; submit on ✅.
+
+    Bound: only a reaction from SLACK_APPROVER_USER_ID on the exact staged message
+    counts. Bounded: stops at the MOC cutoff (live) or --timeout; the submit itself
+    re-runs the guard. No reaction = nothing fires.
+    """
+    F.set_account(ACCOUNT)
+    from live.notify import Slack, SlackError, plan_id
+    payload = _load_pending()
+    ts = payload.get("slack_ts")
+    if not ts:
+        raise SystemExit("Staged plan was not posted to Slack (SLACK_* unset at stage time). "
+                         "Use `submit --yes` instead.")
+    slack = Slack()
+    broker = _broker(allow_live=args.live)
+    pid = plan_id(payload)
+    deadline = time.time() + args.timeout
+    print(f"Awaiting ✅/❌ from {slack.approver} on plan {pid} (poll every {args.interval}s, "
+          f"timeout {args.timeout}s)…")
+    while True:
+        try:
+            decision = slack.decision(ts)
+        except SlackError as e:
+            print(f"  slack poll error: {e}")
+            decision = None
+        if decision == "approve":
+            payload["approved_at"] = datetime.now(timezone.utc).isoformat()
+            submit_pending(payload, broker, override_guard=args.override_guard,
+                           force_window=args.force_window, approved_by=f"slack:{slack.approver}")
+            return
+        if decision == "reject":
+            payload["rejected"] = datetime.now(timezone.utc).isoformat()
+            _pending_path().write_text(json.dumps(payload, indent=2, default=str))
+            msg = f"V19d · Alpaca taxable · REJECTED via Slack — no orders sent.  plan {pid}"
+            deliver(msg)
+            _slack_note(payload, "❌ Rejected — no orders sent.")
+            return
+        ok, why = moc_window(broker)
+        if not ok and not broker.paper:
+            msg = f"V19d · Alpaca taxable · NO APPROVAL by cutoff ({why}) — nothing sent.  plan {pid}"
+            deliver(msg)
+            _slack_note(payload, f"⏰ No approval by cutoff ({why}) — nothing sent.")
+            return
+        if time.time() > deadline:
+            msg = f"V19d · Alpaca taxable · await timed out ({args.timeout}s) — nothing sent.  plan {pid}"
+            deliver(msg)
+            _slack_note(payload, "⏰ Approval window timed out — nothing sent.")
+            return
+        time.sleep(args.interval)
 
 
 # ── settle ───────────────────────────────────────────────────────────────────
@@ -339,6 +448,13 @@ def main() -> None:
     su.add_argument("--override-guard", action="store_true", help="submit despite a guard block")
     su.add_argument("--force-window", action="store_true", help="submit outside the MOC window (paper testing)")
     su.set_defaults(func=cmd_submit)
+    aw = sub.add_parser("await", help="poll Slack for your ✅/❌ on the staged plan; submit on ✅")
+    aw.add_argument("--interval", type=int, default=15, help="poll every N seconds")
+    aw.add_argument("--timeout", type=int, default=1800, help="give up after N seconds (nothing sent)")
+    aw.add_argument("--live", action="store_true", help="allow live (requires ALPACA_PAPER=0)")
+    aw.add_argument("--override-guard", action="store_true")
+    aw.add_argument("--force-window", action="store_true")
+    aw.set_defaults(func=cmd_await)
     sub.add_parser("settle", help="read auction fills, update lots/realized").set_defaults(func=cmd_settle)
     sub.add_parser("status", help="show staged/submitted orders").set_defaults(func=cmd_status)
     args = ap.parse_args()
